@@ -6,6 +6,12 @@ type Class
     | Warrior
     | Tank
 
+type Attribute
+    = Dexterity
+    | Strength
+    | Charisma
+    | Constitution
+
 type alias Player =
     { class : Class
     , hp : Int
@@ -20,6 +26,21 @@ type alias Player =
     , coins : Int
     -- , perks : List Perk
     }
+
+classToString : Class -> String
+classToString class =
+    case class of
+        Rogue ->
+            "Rogue"
+
+        Spy ->
+            "Spy"
+
+        Warrior ->
+            "Warrior"
+
+        Tank ->
+            "Tank"
 
 baseRogue : Player
 baseRogue =

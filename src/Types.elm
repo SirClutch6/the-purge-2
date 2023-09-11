@@ -7,6 +7,8 @@ import Task
 
 import Frontend.Model as FM
 
+import Types.Player as Player
+
 
 type alias FrontendModel =
     FM.Model
@@ -21,6 +23,13 @@ type FrontendMsg
     = UrlClicked UrlRequest
     | UrlChanged Url
     | NoOpFrontendMsg
+    | StartGame
+    | ChoseRogue
+    | ChoseSpy
+    | ChoseWarrior
+    | ChoseTank
+    | AdjustAttr Player.Attribute Int
+    | CalculateHP
 
 
 type ToBackend
