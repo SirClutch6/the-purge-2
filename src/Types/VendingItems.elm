@@ -1,42 +1,68 @@
 module Types.VendingItems exposing (..)
 
-import Player as P
+import Types.Player as P
 
-type Cost
+type alias Cost
     = Int
 
-type Purchaseable Cost
-    = Water 2
-    | Juice 5
-    | HotChocolate 10
-    | ProteinShake 20
+type Item
+    = Water
+    | Juice
+    | HotChocolate
+    | ProteinShake
 
-purchaseablesToString : Purchaseable Cost -> (String, String)
+type alias Purchaseable =
+    { item : Item
+    , cost : Cost
+    }
+
+possibleItemsToPurchase : List Purchaseable
+possibleItemsToPurchase =
+    [ Purchaseable Water 2
+    , Purchaseable Juice 5
+    , Purchaseable HotChocolate 10
+    , Purchaseable ProteinShake 20
+    ]
+    -- = Water 2
+    -- | Juice 5
+    -- | HotChocolate 10
+    -- | ProteinShake 20
+
+purchaseablesToString : Purchaseable -> (String, String)
 purchaseablesToString item =
-    case item of
-        Water cost ->
-            ("Water", toString cost ++ " Coins")
+    case item.item of
+        Water ->
+            ("Water", coinsToString item.cost)
 
-        Juice cost ->
-            ("Juice", toString cost ++ " Coins")
+        Juice ->
+            ("Juice", coinsToString item.cost)
 
-        HotChocolate cost ->
-            ("Hot Chocolate", toString cost ++ " Coins")
+        HotChocolate ->
+            ("Hot Chocolate", coinsToString item.cost)
 
-        ProteinShake cost ->
-            ("Protein Shake", toString cost ++ " Coins")
+        ProteinShake ->
+            ("Protein Shake", coinsToString item.cost)
 
-purchaseableEffect : Purchaseable Cost -> P.Player -> P.Player
+coinsToString : Cost -> String
+coinsToString cost = 
+    case cost of
+        2 -> "2 Coins"
+        5 -> "5 Coins"
+        10 -> "10 Coins"
+        20 -> "20 Coins"
+        _ -> "Error!"
+
+purchaseableEffect : Purchaseable -> P.Player -> P.Player
 purchaseableEffect item player =
-    case item of
-        Water cost ->
+    case item.item of
+        Water ->
             P.adjustHealth 5 player
 
-        Juice cost ->
+        Juice ->
             P.adjustSanity 10 player
 
-        HotChocolate cost ->
-            P.addHealth 1000 player |> P.adjustSanity 1000
+        HotChocolate ->
+            P.adjustHealth 1000 player |> P.adjustSanity 1000
 
-        ProteinShake cost ->
+        ProteinShake ->
             P.adjustMaxHealth 10 player

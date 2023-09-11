@@ -88,18 +88,18 @@ calculateHP player =
         new_hp =
             case player.class of
                 Rogue ->
-                    base_hp + player.constitution * 1.0
+                    base_hp + (toFloat player.constitution) * 1.0
 
                 Spy ->
-                    base_hp + player.constitution * 1.2
+                    base_hp + (toFloat player.constitution) * 1.2
 
                 Warrior ->
-                    base_hp + player.constitution * 1.5
+                    base_hp + (toFloat player.constitution) * 1.5
 
                 Tank ->
-                    base_hp + player.constitution * 2.0
+                    base_hp + (toFloat player.constitution) * 2.0
     in
-    { player | hp = new_hp, max_hp = new_hp }
+    { player | hp = round new_hp, max_hp = round new_hp }
 
 adjustHealth : Int -> Player -> Player
 adjustHealth amount player =

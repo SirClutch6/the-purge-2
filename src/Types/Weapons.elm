@@ -1,7 +1,7 @@
 module Types.Weapons exposing (..)
 
-import Player as Player
-import Enemy as Enemy
+import Types.Player as Player
+import Types.Enemy as Enemy
 
 type Character
     = Player Player.Player
@@ -24,68 +24,83 @@ type AttackType
 
 getWeaponDamage : Character -> Weapon -> AttackType -> Int
 getWeaponDamage character weapon range =
+    let
+        dex = case character of
+            Player player ->
+                player.dexterity
+
+            Enemy enemy ->
+                enemy.dexterity
+
+        str = case character of
+            Player player ->
+                player.strength
+
+            Enemy enemy ->
+                enemy.strength
+    in
     case weapon of
         Taser ->
             case range of
                 Melee ->
-                    character.dexterity + 3
+                    dex + 3
 
                 Ranged ->
-                    character.strength - 2
+                    str - 2
 
         Pistol ->
             case range of
                 Melee ->
-                    character.strength - 1
+                    str - 1
 
                 Ranged ->
-                    character.dexterity + 2
+                    dex + 2
 
         MachineGun ->
             case range of
                 Melee ->
-                    character.strength + 0
+                    str + 0
 
                 Ranged ->
-                    character.dexterity + 3
+                    dex + 3
 
         NightStick ->
             case range of
                 Melee ->
-                    character.strength + 3
+                    str + 3
 
                 Ranged ->
-                    character.strength - 2
+                    str - 2
 
         Blade ->
             case range of
                 Melee ->
-                    character.dexterity + 2
+                    dex + 2
 
                 Ranged ->
-                    character.dexterity + 0
+                    dex + 0
 
         Spear ->
             case range of
                 Melee ->
-                    character.dexterity + 1
+                    dex + 1
 
                 Ranged ->
-                    character.strength + 1
+                    str + 1
 
         Club ->
             case range of
                 Melee ->
-                    character.strength + 2
+                    str + 2
 
                 Ranged ->
-                    character.strength - 2
+                    str - 2
 
         None ->
             case range of
                 Melee ->
                     let
-                        num = max character.strength character.dexterity
+                        num = toFloat <| max str dex
                     in
                     round (num / 2)
 
@@ -95,10 +110,10 @@ getWeaponDamage character weapon range =
         Other _ ->
             case range of
                 Melee ->
-                    character.strength - 1
+                    str - 1
 
                 Ranged ->
-                    character.strength - 2
+                    str - 2
 
 weaponToString : Weapon -> String
 weaponToString weapon =

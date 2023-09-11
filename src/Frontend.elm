@@ -1,0 +1,119 @@
+module Frontend exposing (..)
+
+import Browser exposing (UrlRequest(..))
+import Browser.Navigation as Nav
+import Html
+import Html.Attributes as Attr
+import Lamdera
+import Types exposing (..)
+import Url
+
+import Frontend.Model as FM
+import Frontend.Update as FU
+import Frontend.UpdateFromBackend as FUB
+
+-- import Backend.Update as BU
+
+import Tailwind.Theme as TW
+import Tailwind.Utilities as TW
+
+import Html.Styled as HS
+import Html.Styled.Attributes as HSA
+
+
+
+-- type alias Model =
+--     FrontendModel
+
+
+app =
+    Lamdera.frontend
+        { init = init
+        , onUrlRequest = UrlClicked
+        , onUrlChange = UrlChanged
+        , update = FU.update
+        , updateFromBackend = FUB.updateFromBackend
+        , subscriptions = \m -> Sub.none
+        , view = view
+        }
+
+
+init : Url.Url -> Nav.Key -> ( FM.Model, Cmd FrontendMsg )
+init url key =
+    let
+        model =
+            FM.defineModel <|
+                FM.Init
+                    { key = key
+                    , url = url
+                    }
+    in
+    ( model
+    , Cmd.none
+    )
+
+
+-- update : FrontendMsg -> Model -> ( Model, Cmd FrontendMsg )
+-- update msg model =
+--     case msg of
+--         UrlClicked urlRequest ->
+--             case urlRequest of
+--                 Internal url ->
+--                     ( model
+--                     , Nav.pushUrl model.key (Url.toString url)
+--                     )
+
+--                 External url ->
+--                     ( model
+--                     , Nav.load url
+--                     )
+
+--         UrlChanged url ->
+--             ( model, Cmd.none )
+
+--         NoOpFrontendMsg ->
+--             ( model, Cmd.none )
+
+
+-- updateFromBackend : ToFrontend -> Model -> ( Model, Cmd FrontendMsg )
+-- updateFromBackend msg model =
+--     case msg of
+--         NoOpToFrontend ->
+--             ( model, Cmd.none )
+
+
+view : FM.Model -> Browser.Document Types.FrontendMsg
+view model =
+    { title = ""
+    , body =
+        -- [ Html.div [ Attr.style "text-align" "center", Attr.style "padding-top" "40px" ]
+        --     [ Html.img [ Attr.src "https://lamdera.app/lamdera-logo-black.png", Attr.width 150 ] []
+        --     , Html.div
+        --         [ Attr.style "font-family" "sans-serif"
+        --         , Attr.style "padding-top" "40px"
+        --         ]
+        --         [ Html.text model.message ]
+        --     ]
+        -- ]
+        [ HS.toUnstyled <|
+            HS.div
+                [ HSA.css
+                    [ TW.bg_color TW.gray_100
+                    ]
+                ]
+                [ HS.text "Hello World" 
+                ]
+        ]
+    }
+
+-- pageView = 
+--     pageViewFunction
+
+-- pageViewFunction :
+--     Url.Url
+--     -> XCSN.SceneContext Scene.Scene
+--     -> (FM.Model -> HS.Html Types.FrontendMsg)
+-- pageViewFunction url context =
+--     case XCSN.sceneFromUrlPath url.path context of
+--         Scene.Home ->
+--             UIVAMV.rootArcadeView

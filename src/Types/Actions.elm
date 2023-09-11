@@ -1,7 +1,8 @@
 module Types.Actions exposing (..)
 
-import Weapons as W
-import Player as P
+import Types.Weapons as W
+import Types.Player as P
+import Types.Enemy as E
 
 type Distance
     = Melee
@@ -31,7 +32,7 @@ type AfterRoom
     | Loot
     | Rush
 
-directionToString Direction -> String
+directionToString : Direction -> String
 directionToString direction =
     case direction of
         Toward ->
@@ -235,7 +236,7 @@ enemyCaptainActionOptions distance =
             , EnemyTaunt
             ]
 
-afterRoomEffect : AfterRoom -> Player -> List E.Enemy -> Player
+afterRoomEffect : AfterRoom -> P.Player -> List E.Enemy -> P.Player
 afterRoomEffect effect player enemy_list=
     case effect of
         Rest ->

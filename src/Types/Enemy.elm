@@ -27,7 +27,7 @@ baseEnemyRogue level =
     , dexterity = 2 + level^2
     , strength = 0 + level^2
     , charisma = 0 + level
-    , constitution = -1 + (level^2 / 2)
+    , constitution = -1 + (getLevelConversionInt level)
     , level = level
     }
 
@@ -36,7 +36,7 @@ baseEnemySpy level =
     { class = Spy
     , hp = 0
     , dexterity = 0 + level^2
-    , strength = -1 + (level^2 / 2)
+    , strength = -1 + (getLevelConversionInt level)
     , charisma = 2 + level^2
     , constitution = 0 + level
     , level = level
@@ -49,7 +49,7 @@ baseEnemyWarrior level =
     , dexterity = 1 + level^2
     , strength = 1 + level^2
     , charisma = -1 + level
-    , constitution = 0 + (level^2 / 2)
+    , constitution = 0 + (getLevelConversionInt level)
     , level = level
     }
 
@@ -59,7 +59,7 @@ baseEnemyTank level =
     , hp = 0
     , dexterity = -1 + level
     , strength = 0 + level^2
-    , charisma = 0 + (level^2 / 2)
+    , charisma = 0 + (getLevelConversionInt level)
     , constitution = 2 + level^2
     , level = level
     }
@@ -93,7 +93,7 @@ getCaptainConstitution : Enemy -> Enemy
 getCaptainConstitution captain =
     let
         new_const = 
-            60 - captin.dexterity - captain.strength - captain.charisma
+            60 - captain.dexterity - captain.strength - captain.charisma
     in
     { captain | constitution = new_const }
 
@@ -104,23 +104,37 @@ calculateEnemyHP enemy =
         new_hp =
             case enemy.class of
                 Rogue ->
-                    base_hp + player.constitution * (1.0 + player.level^2 / 10)
+                    base_hp + (toFloat enemy.constitution * (2.0 + (getConstConversionInt enemy.level 10)))
 
                 Spy ->
-                    base_hp + player.constitution * (1.2 + player.level^2 / 10)
+                    base_hp + (toFloat enemy.constitution * (1.2 + (getConstConversionInt enemy.level 10)))
 
                 Warrior ->
-                    base_hp + player.constitution * (1.5 + player.level^2 / 10)
+                    base_hp + (toFloat enemy.constitution * (1.5 + (getConstConversionInt enemy.level 10)))
 
                 Tank ->
-                    base_hp + player.constitution * (2.0 + player.level^2 / 10)
+                    base_hp + (toFloat enemy.constitution * (2.0 + (getConstConversionInt enemy.level 10)))
 
                 Boss ->
-                    base_hp + player.constitution * (2.0 + player.level^2 / 10)
+                    base_hp + (toFloat enemy.constitution * (2.0 + (getConstConversionInt enemy.level 10)))
 
                 Captain ->
-                    40 + enemy.constitution
+                    40 + (toFloat enemy.constitution)
     in
-    { player | hp = (round new_hp) }
+    { enemy | hp = (round new_hp) }
 
+getLevelConversionInt : Int -> Int
+getLevelConversionInt level =
+    let
+        square = toFloat level^2
+        division = square / 2
+    in
+    round division
 
+getConstConversionInt : Int -> Int -> Float
+getConstConversionInt level denominator =
+    let
+        square = toFloat level^2
+        division = square / toFloat denominator
+    in
+    division
