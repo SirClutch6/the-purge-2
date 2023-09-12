@@ -8,6 +8,8 @@ import Task
 import Frontend.Model as FM
 
 import Types.Player as Player
+import Types.Levels as Level
+import Time
 
 
 type alias FrontendModel =
@@ -31,12 +33,18 @@ type FrontendMsg
     | AdjustAttr Player.Attribute Int
     | CalculateHP
     | ConfirmPointsBuy
+    | EnterBuilding
+    | SearchForAnotherWayIn
     | EnterRoom
     | FinishRoom
     | FinishLevel
-    | BetweenRoomRest
-    | BetweenRoomLoot
-    | BetweenRoomRush
+    | BetweenRoomRest Level.Room
+    | BetweenRoomLoot Level.Room
+    | BetweenRoomRush Level.Room
+    | ResetGame
+    | JumpToFinish
+    | GetTime
+    | GetCleanTime Time.Posix
 
 
 type ToBackend

@@ -22,6 +22,7 @@ import Tailwind.Utilities as TW
 import Html.Styled as HS
 import Html.Styled.Attributes as HSA
 import Html.Styled.Events as HSE
+import Task
 
 -- import Element as E
 -- import Element.Background as EBa
@@ -58,7 +59,7 @@ init url key =
                     }
     in
     ( model
-    , Cmd.none
+    , Types.performMessage <| Types.GetTime
     )
 
 

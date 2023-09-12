@@ -4,6 +4,8 @@ import Types.Weapons as W
 import Types.Player as P
 import Types.Enemy as E
 
+import Random
+
 type Distance
     = Melee
     | Range
@@ -236,19 +238,30 @@ enemyCaptainActionOptions distance =
             , EnemyTaunt
             ]
 
-afterRoomEffect : AfterRoom -> P.Player -> List E.Enemy -> P.Player
-afterRoomEffect effect player enemy_list=
+afterRoomEffect : AfterRoom -> List E.Enemy -> Random.Seed -> P.Player -> (P.Player, Random.Seed)
+afterRoomEffect effect enemy_list seed player =
     case effect of
         Rest ->
-            P.adjustHealth 5 player |> P.adjustSanity 5
+            (P.adjustHealth 5 player |> P.adjustSanity 5, seed)
 
         Loot ->
             let
-                coins =
-                    List.length enemy_list * 2 --TODO random number of coins
+                (coins, new_seed) =
+                    -- List.length enemy_list * 2 --TODO random number of coins
+                    List.foldl getRandomCoins ([], seed) enemy_list 
+                
+                new_coins = List.sum coins
             in
-            P.adjustCoins coins player
+            (P.adjustCoins new_coins player, new_seed)
             -- TODO take new weapon
 
         Rush ->
-            P.adjustRush 2 player
+            (P.adjustRush 2 player, seed)
+
+getRandomCoins : E.Enemy -> (List Int, Random.Seed) -> (List Int, Random.Seed)
+getRandomCoins _ (coins, seed) =
+    let
+        (new_coins, new_seed) =
+            Random.step (Random.int 1 5) seed
+    in
+    (new_coins :: coins, new_seed)

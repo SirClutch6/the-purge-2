@@ -8,6 +8,13 @@ type Item
     | Chair
     | Mug
 
+type RoomEntryType
+    = DexSneak
+    | ChrSneak
+    | FailedSneak
+    | Rush
+    | Normal
+
 type alias Room =
     { num : Int
     , items : List Item

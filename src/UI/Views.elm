@@ -122,7 +122,7 @@ viewInGame model =
             viewStartedEntry (Maybe.withDefault Player.defaultPlayer model.player)
         Player.InRoom ->
             -- Show room scene
-            viewInRoom (Maybe.withDefault Player.defaultPlayer model.player) current_room
+            viewInRoom (Maybe.withDefault Player.defaultPlayer model.player) current_room model.room_entry_type
         Player.BetweenRooms ->
             -- Show between room scene
             viewBetweenRooms (Maybe.withDefault Player.defaultPlayer model.player) current_room
@@ -137,24 +137,103 @@ viewInGame model =
             [ HS.text "Error, invalid player status" ]
 
 viewStartedEntry : Player.Player -> List (HS.Html Types.FrontendMsg)
-viewStartedEntry player = 
-    [ HS.text "About to enter building" ]
+viewStartedEntry _ = 
+    [ HS.div
+        [ HSA.css
+            [ TW.flex
+            , TW.flex_col
+            ]
+        ]
+        [ HS.text "From your surveilance you believe there is only one guard posted in the entry room to the building."
+        , HS.text "Would you like to enter through the doors, or search for another way in?"
+        , HS.div
+            []
+            [ Btn.button Types.EnterBuilding (Just "Enter")
+                |> Btn.toHtml
+            , Btn.button Types.SearchForAnotherWayIn (Just "Search")
+                |> Btn.toHtml
+            ]
+            ]
+    ]
 
-viewInRoom : Player.Player -> Level.Room -> List (HS.Html Types.FrontendMsg)
-viewInRoom player room =
-    [ HS.text "In room" ]
+viewInRoom : Player.Player -> Level.Room -> Level.RoomEntryType -> List (HS.Html Types.FrontendMsg)
+viewInRoom player room msg =
+    let
+        occ = 
+            if List.length room.enemies > 1 then
+                "Occupants"
+            else
+                "Occupant"
+        text = 
+            case msg of
+                Level.DexSneak ->
+                    "You have successfully found another way into the building."
+                Level.ChrSneak ->
+                    "You have found another way into the building, but you were spotted by a guard. Luckily you were able to come up with a good excuse to be there and he lets you go."    
+                Level.FailedSneak ->
+                    "While looking for another way in you took a nasty fall and lost 5 hp."
+                Level.Rush ->
+                    "You quickly enter the room, catching its " ++ occ ++ " off guard."
+                Level.Normal ->
+                    "You proceed into the room."
+    in
+    [ HS.div
+        [ HSA.css
+            [ TW.flex
+            , TW.flex_col
+            ]
+        ]
+        [ HS.text text
+        , Btn.button Types.JumpToFinish (Just "Skip to Finish")
+            |> Btn.toHtml
+        ]
+    ]
+    
 
 viewBetweenRooms : Player.Player -> Level.Room -> List (HS.Html Types.FrontendMsg)
 viewBetweenRooms player room =
-    [ HS.text "Between rooms" ]
+    [ HS.div
+        [ HSA.css
+            [ 
+            ]
+        ]
+        [ HS.text "What will you do between rooms?"
+        ]
+    , HS.div
+        [ HSA.css
+            [ TW.space_x_10
+            ]
+        ]
+        [ Btn.button (Types.BetweenRoomRest room) (Just "Rest")
+            |> Btn.toHtml
+        , Btn.button (Types.BetweenRoomLoot room) (Just "Loot")
+            |> Btn.toHtml
+        , Btn.button (Types.BetweenRoomRush room) (Just "Rush")
+            |> Btn.toHtml
+        ]
+    ]
+    
 
 viewBetweenLevels : Player.Player -> Level.Level -> List (HS.Html Types.FrontendMsg)
 viewBetweenLevels player level =
     [ HS.text "Between levels" ]
 
 viewFinished : Player.Player -> List (HS.Html Types.FrontendMsg)
-viewFinished player =
-    [ HS.text "Finished" ]
+viewFinished _ =   
+    [ HS.div
+        [ HSA.css
+            [ TW.flex
+            , TW.flex_col
+            ]
+        ]
+        [ HS.text "As The Captain falls to the ground, his final taunt floats to your ears." 
+        , HS.text """Please, please don't do this..."""
+        , HS.text "Finally, the last of the police have been eliminated. The people of the city are free; free from laws, restrictions, and limits."
+        , HS.text "Let The Purge begin..."
+        , Btn.button Types.ResetGame (Just "Reset Game")
+            |> Btn.toHtml
+        ]
+    ]
 
 adjustAttributeDiv : Player.Player -> Player.Attribute -> Int -> Int -> HS.Html Types.FrontendMsg
 adjustAttributeDiv player attr points_remaining floor =
