@@ -149,3 +149,10 @@ itemToString item =
 
         Mug ->
             "Mug"
+
+defaultRoom : Room
+defaultRoom =
+    { num = -1
+    , items = []
+    , enemies = []
+    }

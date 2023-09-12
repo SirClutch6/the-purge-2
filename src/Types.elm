@@ -30,6 +30,13 @@ type FrontendMsg
     | ChoseTank
     | AdjustAttr Player.Attribute Int
     | CalculateHP
+    | ConfirmPointsBuy
+    | EnterRoom
+    | FinishRoom
+    | FinishLevel
+    | BetweenRoomRest
+    | BetweenRoomLoot
+    | BetweenRoomRush
 
 
 type ToBackend

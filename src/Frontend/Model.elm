@@ -13,11 +13,15 @@ import Types.Weapons as Weapon
 type alias Model =
     { key : Nav.Key
     , url : Url.Url
-    , game_started : Bool 
-    , class_picked : Bool
     , player : Maybe Player.Player
     , temp_player : Maybe Player.Player
+    , player_status : Player.Status 
+    , game_started : Bool
+    , class_picked : Bool
+    , point_buy_complete : Bool
     , points_to_spend : Int
+    , current_room : Int
+    , current_level : Levels.Level
     }
 
 type DefineModel
@@ -46,9 +50,21 @@ defineModel define_model =
     in
     { key = non_resetable_fields.key
     , url = non_resetable_fields.url
-    , game_started = False
-    , class_picked = False
     , player = Nothing
     , temp_player = Nothing
-    , points_to_spend = 10
+    , player_status = Player.NotStarted
+    , game_started = False
+    , class_picked = False
+    , point_buy_complete = False
+    , points_to_spend = startingPoints
+    , current_room = 0
+    , current_level = Levels.level1
     }
+
+startingPoints : Int
+startingPoints =
+    10
+
+levelUpPoints : Int
+levelUpPoints =
+    3

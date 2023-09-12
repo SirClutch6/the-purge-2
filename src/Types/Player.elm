@@ -1,5 +1,13 @@
 module Types.Player exposing (..)
 
+type Status
+    = NotStarted
+    | StartedEntry
+    | InRoom
+    | BetweenRooms
+    | BetweenLevels
+    | Finished
+
 type Class
     = Rogue
     | Spy
@@ -41,6 +49,21 @@ classToString class =
 
         Tank ->
             "Tank"
+
+defaultPlayer : Player
+defaultPlayer =
+    { class = Rogue
+    , hp = 0
+    , max_hp = 0
+    , dexterity = 0
+    , strength = 0
+    , charisma = 0
+    , constitution = 0
+    , sanity = 0
+    , max_sanity = 0
+    , rush = 0
+    , coins = 0
+    }
 
 baseRogue : Player
 baseRogue =

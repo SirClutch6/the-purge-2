@@ -118,7 +118,7 @@ view model =
             [
                 HS.div
                     [ HSA.css
-                        [ TW.bg_color TW.red_200
+                        [ TW.bg_color TW.blue_200
                         , TW.h_3over4
                         , TW.w_3over4
                         , TW.justify_center
@@ -139,23 +139,13 @@ viewGame : FM.Model -> List (HS.Html Types.FrontendMsg)
 viewGame model =
     let
         whatToView = 
-            if model.game_started then
-                UI.viewGameStarted model
-            else
+            if not model.game_started then
                 UI.viewGameNotStarted model
+            else if not model.class_picked then
+                UI.viewPickClass model
+            else if not model.point_buy_complete then
+                UI.viewPointBuy model
+            else
+                UI.viewInGame model
     in
     whatToView
-
-
-
--- pageView = 
---     pageViewFunction
-
--- pageViewFunction :
---     Url.Url
---     -> XCSN.SceneContext Scene.Scene
---     -> (FM.Model -> HS.Html Types.FrontendMsg)
--- pageViewFunction url context =
---     case XCSN.sceneFromUrlPath url.path context of
---         Scene.Home ->
---             UIVAMV.rootArcadeView
