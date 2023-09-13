@@ -19,6 +19,7 @@ type alias Model =
     , url : Url.Url
     , random_seed : Random.Seed
     , player : Maybe Player.Player
+    , current_weapon : Weapon.Weapon
     , temp_player : Maybe Player.Player
     , player_status : Player.Status 
     , game_started : Bool
@@ -27,7 +28,9 @@ type alias Model =
     , points_to_spend : Int
     , room_entry_type : Levels.RoomEntryType
     , current_room : Int
+    , distance_from_enemy : Actions.Distance
     , current_level : Levels.Level
+    , show_help_menu : Bool
     }
 
 type DefineModel
@@ -58,6 +61,7 @@ defineModel define_model =
     , url = non_resetable_fields.url
     , random_seed = Random.initialSeed 0
     , player = Nothing
+    , current_weapon = Weapon.Other "Nothing"
     , temp_player = Nothing
     , player_status = Player.NotStarted
     , game_started = False
@@ -66,7 +70,9 @@ defineModel define_model =
     , points_to_spend = startingPoints
     , room_entry_type = Levels.Normal
     , current_room = 0
+    , distance_from_enemy = Actions.Range
     , current_level = Levels.level1
+    , show_help_menu = False
     }
 
 -- getTimeInt : Int

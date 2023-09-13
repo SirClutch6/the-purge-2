@@ -3,8 +3,10 @@ module Types.Actions exposing (..)
 import Types.Weapons as W
 import Types.Player as P
 import Types.Enemy as E
+import Logic.RandomGen as RNG
 
 import Random
+
 
 type Distance
     = Melee
@@ -248,7 +250,9 @@ afterRoomEffect effect enemy_list seed player =
             let
                 (coins, new_seed) =
                     -- List.length enemy_list * 2 --TODO random number of coins
-                    List.foldl getRandomCoins ([], seed) enemy_list 
+                    -- List.foldl getRandomCoins ([], seed) enemy_list 
+                    Random.step (RNG.randomListGen (List.length enemy_list) RNG.oneToFive) seed
+                    
                 
                 new_coins = List.sum coins
             in

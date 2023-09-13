@@ -13,6 +13,8 @@ import Html.Styled.Events as HSE
 
 import Types.Player as Player
 import Types.Levels as Level
+import Types.Actions as Actions
+import Css exposing (move)
 
 viewGameNotStarted : FM.Model -> List (HS.Html Types.FrontendMsg)
 viewGameNotStarted model =
@@ -122,7 +124,7 @@ viewInGame model =
             viewStartedEntry (Maybe.withDefault Player.defaultPlayer model.player)
         Player.InRoom ->
             -- Show room scene
-            viewInRoom (Maybe.withDefault Player.defaultPlayer model.player) current_room model.room_entry_type
+            viewInRoom (Maybe.withDefault Player.defaultPlayer model.player) current_room model.distance_from_enemy model.room_entry_type
         Player.BetweenRooms ->
             -- Show between room scene
             viewBetweenRooms (Maybe.withDefault Player.defaultPlayer model.player) current_room
@@ -156,8 +158,8 @@ viewStartedEntry _ =
             ]
     ]
 
-viewInRoom : Player.Player -> Level.Room -> Level.RoomEntryType -> List (HS.Html Types.FrontendMsg)
-viewInRoom player room msg =
+viewInRoom : Player.Player -> Level.Room -> Actions.Distance -> Level.RoomEntryType -> List (HS.Html Types.FrontendMsg)
+viewInRoom player room distance msg =
     let
         occ = 
             if List.length room.enemies > 1 then
@@ -167,23 +169,55 @@ viewInRoom player room msg =
         text = 
             case msg of
                 Level.DexSneak ->
-                    "You have successfully found another way into the building."
+                    "You have successfully found another way into the building.\n You get two free actions against the unsuspecting " ++ occ ++ "."
                 Level.ChrSneak ->
                     "You have found another way into the building, but you were spotted by a guard. Luckily you were able to come up with a good excuse to be there and he lets you go."    
                 Level.FailedSneak ->
-                    "While looking for another way in you took a nasty fall and lost 5 hp."
+                    "While looking for another way in you take a nasty fall and lose 5 hp."
                 Level.Rush ->
                     "You quickly enter the room, catching its " ++ occ ++ " off guard."
                 Level.Normal ->
                     "You proceed into the room."
+        (attack_btn, move_btn) = 
+            if distance == Actions.Range then
+                ( Btn.button (Types.PlayerAttack Actions.Range) (Just "Ranged Attack")
+                    |> Btn.toHtml
+                , Btn.button (Types.PlayerMove Actions.Toward) (Just "Approach Guard")
+                    |> Btn.toHtml
+                )
+            else 
+                ( Btn.button (Types.PlayerAttack Actions.Melee) (Just "Melee Attack")
+                    |> Btn.toHtml
+                , Btn.button (Types.PlayerMove Actions.Away) (Just "Push Guard Away")
+                    |> Btn.toHtml
+                )
     in
     [ HS.div
         [ HSA.css
             [ TW.flex
             , TW.flex_col
+            , TW.items_center
             ]
         ]
-        [ HS.text text
+        [ HS.text ("HP: " ++ (String.fromInt player.hp) ++ "/" ++ (String.fromInt player.max_hp) ++ "\n")
+        , HS.text ("Sanity%: " ++ (String.fromInt player.sanity) ++ "\n")
+        , HS.text text
+        , HS.div
+            [ HSA.css
+                [ TW.space_x_2
+                ]
+            ]
+            [ move_btn
+            , attack_btn
+            , Btn.button (Types.PlayerTaunt) (Just "Taunt")
+                |> Btn.toHtml
+            , Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack")
+                |> Btn.toHtml
+            , Btn.button (Types.PlayerStealth) (Just "Enter Stealth")
+                |> Btn.toHtml
+            , Btn.button (Types.PlayerHeal) (Just "Heal")
+                |> Btn.toHtml
+            ]
         , Btn.button Types.JumpToFinish (Just "Skip to Finish")
             |> Btn.toHtml
         ]
@@ -226,9 +260,9 @@ viewFinished _ =
             , TW.flex_col
             ]
         ]
-        [ HS.text "As The Captain falls to the ground, his final taunt floats to your ears." 
-        , HS.text """Please, please don't do this..."""
-        , HS.text "Finally, the last of the police have been eliminated. The people of the city are free; free from laws, restrictions, and limits."
+        [ HS.text "As The Captain falls to the ground, his final taunt floats to your ears.\n" 
+        , HS.text "\"Please, please don't do this...\"\n"
+        , HS.text "Finally, the last of the police have been eliminated. The people of the city are free; free from laws, restrictions, and limits.\n"
         , HS.text "Let The Purge begin..."
         , Btn.button Types.ResetGame (Just "Reset Game")
             |> Btn.toHtml

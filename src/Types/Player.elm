@@ -32,6 +32,7 @@ type alias Player =
     , max_sanity : Int
     , rush : Int
     , coins : Int
+    , turn_initiative : Int
     -- , perks : List Perk
     }
 
@@ -63,6 +64,7 @@ defaultPlayer =
     , max_sanity = 0
     , rush = 0
     , coins = 0
+    , turn_initiative = 0
     }
 
 baseRogue : Player
@@ -78,6 +80,7 @@ baseRogue =
     , max_sanity = 100
     , rush = 0
     , coins = 0
+    , turn_initiative = 0
     }
 
 baseSpy : Player
@@ -93,6 +96,7 @@ baseSpy =
     , max_sanity = 100
     , rush = 0
     , coins = 0
+    , turn_initiative = 0
     }
 
 baseWarrior : Player
@@ -108,6 +112,7 @@ baseWarrior =
     , max_sanity = 100
     , rush = 0
     , coins = 0
+    , turn_initiative = 0
     }
 
 baseTank : Player
@@ -123,6 +128,7 @@ baseTank =
     , max_sanity = 100
     , rush = 0
     , coins = 0
+    , turn_initiative = 0
     }
 
 calculateHP : Player -> Player
@@ -205,3 +211,7 @@ adjustCoins amount player =
                 player.coins + amount
     in
     { player | coins = new_coins }
+
+adjustInitiative : Player -> Int -> Player
+adjustInitiative player inv =
+    { player | turn_initiative = inv }

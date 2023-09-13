@@ -10,6 +10,7 @@ type Class
 
 type alias Enemy =
     { class : Class
+    , id : Int
     , hp : Int
     , max_hp : Int
     , dexterity : Int
@@ -18,13 +19,30 @@ type alias Enemy =
     , constitution : Int
     , level : Int
     , rush : Int
+    , turn_initiative : Int
     }
 
 -- Get level from model
 
-baseEnemyRogue : Int -> Enemy
-baseEnemyRogue level =
+defaultEnemy : Enemy
+defaultEnemy =
     { class = Rogue
+    , id = 0
+    , hp = 0
+    , max_hp = 0
+    , dexterity = 0
+    , strength = 0
+    , charisma = 0
+    , constitution = 0
+    , level = 0
+    , rush = 0
+    , turn_initiative = 0
+    }
+
+baseEnemyRogue : Int -> Int -> Enemy
+baseEnemyRogue level id =
+    { class = Rogue
+    , id = id
     , hp = 0
     , max_hp = 0
     , dexterity = 2 + level^2
@@ -33,11 +51,13 @@ baseEnemyRogue level =
     , constitution = -1 + (getLevelConversionInt level)
     , level = level
     , rush = 0
+    , turn_initiative = 0
     }
 
-baseEnemySpy : Int -> Enemy
-baseEnemySpy level =
+baseEnemySpy : Int -> Int -> Enemy
+baseEnemySpy level id =
     { class = Spy
+    , id = id
     , hp = 0
     , max_hp = 0
     , dexterity = 0 + level^2
@@ -46,11 +66,13 @@ baseEnemySpy level =
     , constitution = 0 + level
     , level = level
     , rush = 0
+    , turn_initiative = 0
     }
 
-baseEnemyWarrior : Int -> Enemy
-baseEnemyWarrior level =
+baseEnemyWarrior : Int -> Int -> Enemy
+baseEnemyWarrior level id =
     { class = Warrior
+    , id = id
     , hp = 0
     , max_hp = 0
     , dexterity = 1 + level^2
@@ -59,11 +81,13 @@ baseEnemyWarrior level =
     , constitution = 0 + (getLevelConversionInt level)
     , level = level
     , rush = 0
+    , turn_initiative = 0
     }
 
-baseEnemyTank : Int -> Enemy
-baseEnemyTank level =
+baseEnemyTank : Int -> Int -> Enemy
+baseEnemyTank level id =
     { class = Tank
+    , id = id
     , hp = 0
     , max_hp = 0
     , dexterity = -1 + level
@@ -72,11 +96,13 @@ baseEnemyTank level =
     , constitution = 2 + level^2
     , level = level
     , rush = 0
+    , turn_initiative = 0
     }
 
-baseEnemyBoss : Int -> Enemy
-baseEnemyBoss level =
+baseEnemyBoss : Int -> Int -> Enemy
+baseEnemyBoss level id =
     { class = Boss
+    , id = id
     , hp = 0
     , max_hp = 0
     , dexterity = 1 + level^2
@@ -85,11 +111,13 @@ baseEnemyBoss level =
     , constitution = 1 + level^2
     , level = level
     , rush = 0
+    , turn_initiative = 0
     }
 
-baseEnemyCaptain : Int -> Enemy
-baseEnemyCaptain level =
+baseEnemyCaptain : Int -> Int -> Enemy
+baseEnemyCaptain level id =
     { class = Captain
+    , id = id
     , hp = 0
     , max_hp = 0
     , dexterity = 0 --TODO Random numbers between 8 and 15
@@ -98,6 +126,7 @@ baseEnemyCaptain level =
     , constitution = 0
     , level = level
     , rush = 0
+    , turn_initiative = 0
     }
 
 -- q: how do i get a random number in elm?
@@ -182,7 +211,7 @@ adjustRush amount enemy =
         _ ->
             enemy
 
-adjustHealth : Int -> Enemy -> Enemy
+adjustHealth : Int -> Enemy -> Maybe Enemy
 adjustHealth amount enemy =
     let
         new_hp = 
@@ -193,4 +222,11 @@ adjustHealth amount enemy =
             else
                 enemy.hp + amount
     in
-    { enemy | hp = new_hp }
+    if new_hp == 0 then
+        Nothing
+    else
+        Just { enemy | hp = new_hp }
+
+adjustInitiative : Enemy -> Int -> Enemy
+adjustInitiative enemy inv =
+    { enemy | turn_initiative = inv }

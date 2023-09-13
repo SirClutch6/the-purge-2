@@ -14,7 +14,7 @@ import Frontend.UpdateFromBackend as FUB
 
 import UI.Views as UI
 
--- import Backend.Update as BU
+import UI.Components.Buttons as Btn
 
 import Tailwind.Theme as TW
 import Tailwind.Utilities as TW
@@ -94,44 +94,49 @@ init url key =
 
 view : FM.Model -> Browser.Document Types.FrontendMsg
 view model =
+    let
+        help_menu =
+            if model.show_help_menu then
+                HS.div
+                [ HSA.css
+                    [ TW.bg_color TW.gray_200
+                    , TW.h_3over4
+                    , TW.w_1over4
+                    ]
+                ]
+                [ HS.text "HELP" -- TODO add help info here
+                ]
+            else
+                HS.text ""
+    in
     { title = ""
     , body =
-        -- [ Html.div [ Attr.style "text-align" "center", Attr.style "padding-top" "40px" ]
-        --     [ Html.img [ Attr.src "https://lamdera.app/lamdera-logo-black.png", Attr.width 150 ] []
-        --     , Html.div
-        --         [ Attr.style "font-family" "sans-serif"
-        --         , Attr.style "padding-top" "40px"
-        --         ]
-        --         [ Html.text model.message ]
-        --     ]
-        -- ]
         [ HS.toUnstyled <|
             HS.div
             [ HSA.css
                 [ TW.flex
-                , TW.justify_center --Horizontal
-                -- , TW.items_center --Vertical
+                , TW.justify_center 
                 , TW.h_screen
                 , TW.w_screen
                 , TW.box_border
                 ]
             ]
-            [
-                HS.div
-                    [ HSA.css
-                        [ TW.bg_color TW.blue_200
-                        , TW.h_3over4
-                        , TW.w_3over4
-                        , TW.justify_center
-                        , TW.flex
-                        , TW.text_center
-                        , TW.box_border
-                        , TW.p_4
-                        ]
+            [ HS.div
+                [ HSA.css
+                    [ TW.bg_color TW.blue_200
+                    , TW.h_3over4
+                    , TW.w_3over4
+                    , TW.justify_center
+                    , TW.flex
+                    , TW.text_center
+                    , TW.box_border
+                    , TW.p_4
                     ]
-                    (viewGame model)
-                    -- [ HS.text "Hello World" 
-                    -- ]
+                ]
+                (viewGame model)
+                -- [ HS.text "Hello World" 
+                -- ]
+            , help_menu
             ]
         ]
     }
@@ -149,4 +154,7 @@ viewGame model =
             else
                 UI.viewInGame model
     in
-    whatToView
+    whatToView ++
+    [ Btn.button Types.ShowHelp (Just "?")
+            |> Btn.toHtml
+    ]

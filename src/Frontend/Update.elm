@@ -5,15 +5,15 @@ import Types.Player as Player
 import Types.Levels as Level
 import Types.Actions as Action
 import Types.Player as Player
-import Types.Player as Player
-import Types.Player as Player
+import Types.Weapons as Weapon
 import Platform.Cmd as Cmd
 
-import Types.RandomGen as RNG
+import Logic.RandomGen as RNG
 import Random
 import Task
 import Time
-
+import Types.Enemy as Enemy
+import Logic.Initiative as Inv
 update : Types.FrontendMsg -> Types.FrontendModel -> (Types.FrontendModel, Cmd Types.FrontendMsg)
 update msg model =
     case msg of
@@ -25,28 +25,28 @@ update msg model =
             let
                 new_player = Player.baseRogue |> Player.calculateHP
             in
-            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True }
+            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Blade }
             , Cmd.none
             )
         Types.ChoseSpy ->
             let
                 new_player = Player.baseSpy |> Player.calculateHP
             in
-            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True }
+            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Blade }
             , Cmd.none
             )
         Types.ChoseWarrior ->
             let
                 new_player = Player.baseWarrior |> Player.calculateHP
             in
-            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True }
+            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Spear }
             , Cmd.none
             )
         Types.ChoseTank ->
             let
                 new_player = Player.baseTank |> Player.calculateHP
             in
-            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True }
+            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Club }
             , Cmd.none
             )
         Types.AdjustAttr attr amount->
@@ -101,14 +101,16 @@ update msg model =
                         Just p -> p
                         Nothing -> Player.baseRogue |> Player.calculateHP --SHOULD NEVER HAPPEN
                 (random_num, new_seed) = Random.step RNG.oneToTwenty model.random_seed
+                -- _ = Debug.log "Random Dex Num" random_num
                 (success, attr, new_random_seed) =
-                    if random_num + player.dexterity >= 15 then
+                    if random_num + player.dexterity >= 18 then
                         (True, "Dex", new_seed)
                     else
                         let
                             (new_random, seed) = Random.step RNG.oneToTwenty new_seed
+                            -- _ = Debug.log "Random Chr Num" new_random
                         in
-                        if new_random + player.charisma >= 15 then
+                        if new_random + player.charisma >= 18 then
                             (True, "Chr", seed)
                         else
                             (False, "", seed)
@@ -164,10 +166,11 @@ update msg model =
                 room_enemies = room.enemies
                 new_player = 
                     case model.player of
-                        Just p -> p |> Action.afterRoomEffect Action.Rest room_enemies model.random_seed
+                        Just p -> p
                         Nothing -> Player.baseRogue |> Player.calculateHP --SHOULD NEVER HAPPEN
+                (updated_player, new_seed) = Action.afterRoomEffect Action.Rest room_enemies model.random_seed new_player
             in
-            ( { model | player = Just new_player }
+            ( { model | player = Just updated_player, random_seed = new_seed }
             , Types.performMessage <| Types.EnterRoom
             )
         Types.BetweenRoomLoot room ->
@@ -188,13 +191,90 @@ update msg model =
                 room_enemies = room.enemies
                 new_player = 
                     case model.player of
-                        Just p -> p |> Action.afterRoomEffect Action.Rush room_enemies model.random_seed
+                        Just p -> p
                         Nothing -> Player.baseRogue |> Player.calculateHP --SHOULD NEVER HAPPEN
+
+                (updated_player, new_seed) = Action.afterRoomEffect Action.Rush room_enemies model.random_seed new_player
             in
-            ( { model | player = Just new_player }
+            ( { model | player = Just updated_player, random_seed = new_seed }
             , Types.performMessage <| Types.EnterRoom
             )
 
+        -- PLAYER ACTIONS
+        Types.PlayerAttack distance->
+            -- TODO lose weapon on ranged attack?
+            -- TODO how to chose which enemy to attack?
+            let
+                the_current_level = model.current_level
+                attack_type = 
+                    if distance == Action.Melee then
+                        Weapon.Melee
+                    else
+                        Weapon.Ranged
+                player = 
+                    case model.player of
+                        Just p -> p
+                        Nothing -> Player.baseRogue |> Player.calculateHP --SHOULD NEVER HAPPEN
+                damage_dealt = Weapon.getWeaponDamage (Weapon.Player player) model.current_weapon attack_type
+                room = 
+                    List.filter (\r -> r.num == model.current_room) model.current_level.rooms |> List.head |> Maybe.withDefault Level.defaultRoom
+                -- new_enemies = List.head room.enemies |> Maybe.withDefault Enemy.defaultEnemy |> Enemy.adjustHealth damage_dealt--TODO FIGURE OUT ENEMY STUFF HERE!!!
+                new_enemies =
+                    case room.enemies of
+                        [] -> []
+                        (h::t) -> 
+                            let
+                                new_enemy = 
+                                    case (Enemy.adjustHealth damage_dealt h) of
+                                        Nothing -> []
+                                        Just e -> [e]
+                            in
+                            new_enemy ++ t
+                new_room = 
+                    { room | enemies = new_enemies }
+                all_rooms = 
+                    List.map (\r -> if r.num == model.current_room then new_room else r) model.current_level.rooms
+                new_current_level = 
+                    { the_current_level | rooms = all_rooms }
+            in 
+            ( { model | current_level = new_current_level }
+            , Cmd.none
+            )
+
+        Types.PlayerMove direction ->
+            if direction == Action.Toward then
+                ( { model | distance_from_enemy = Action.Melee }
+                , Cmd.none
+                )
+            else
+                ( { model | distance_from_enemy = Action.Range }
+                , Cmd.none
+                )
+        Types.PlayerTaunt ->
+            -- TODO Taunt here
+            ( model
+            , Cmd.none
+            )
+        Types.PlayerFuriousAttack ->
+            -- TODO Furious Attack here
+            ( model
+            , Cmd.none
+            )
+        Types.PlayerStealth ->
+            -- TODO Stealth here
+            ( model
+            , Cmd.none
+            )
+        Types.PlayerHeal ->
+            -- TODO Heal here
+            ( model
+            , Cmd.none
+            )
+        
+        Types.ShowHelp ->
+            ( { model | show_help_menu = not model.show_help_menu }
+            , Cmd.none
+            )
 
         Types.ResetGame ->
             ( { model | game_started = False
@@ -214,7 +294,7 @@ update msg model =
             )
         Types.GetTime ->
             ( model
-            , Task.perform <| Types.GetCleanTime Time.now
+            , Task.perform Types.GetCleanTime Time.now
             )
         Types.GetCleanTime time ->
             let

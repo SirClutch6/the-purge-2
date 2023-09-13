@@ -9,7 +9,9 @@ import Frontend.Model as FM
 
 import Types.Player as Player
 import Types.Levels as Level
+import Types.Actions as Action
 import Time
+import Types.Player exposing (Player)
 
 
 type alias FrontendModel =
@@ -41,6 +43,14 @@ type FrontendMsg
     | BetweenRoomRest Level.Room
     | BetweenRoomLoot Level.Room
     | BetweenRoomRush Level.Room
+    -- Player Actions
+    | PlayerAttack Action.Distance
+    | PlayerMove Action.Direction
+    | PlayerTaunt
+    | PlayerFuriousAttack
+    | PlayerStealth
+    | PlayerHeal
+    | ShowHelp
     | ResetGame
     | JumpToFinish
     | GetTime
