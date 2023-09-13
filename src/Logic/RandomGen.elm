@@ -10,6 +10,10 @@ oneToTwenty : Random.Generator Int
 oneToTwenty =
     Random.int 1 20
 
+zeroToNine : Random.Generator Int
+zeroToNine =
+    Random.int 0 9
+
 oneToFive : Random.Generator Int
 oneToFive =
     Random.int 1 5

@@ -7,6 +7,7 @@ type Status
     | BetweenRooms
     | BetweenLevels
     | Finished
+    | Lost
 
 type Class
     = Rogue

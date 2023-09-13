@@ -4,7 +4,8 @@ import Types.Player as Player
 import Types.Enemy as Enemy
 import Random
 import Logic.RandomGen as RNG
-import List exposing (sort)
+import List
+import Dict
 
 type Character
     = Player Player.Player
@@ -13,65 +14,70 @@ type Character
 type alias CharacterWithInitiative =
     (Character, Int)
 
-rollInitiative : Player.Player -> List Enemy.Enemy -> Random.Seed -> (Player.Player, List Enemy.Enemy, Random.Seed)
+rollInitiative : Player.Player -> List Enemy.Enemy -> Random.Seed -> (List CharacterWithInitiative, Random.Seed)
 rollInitiative player enemies seed =
     let
         (playerInitiative, new_seed) =
             Random.step RNG.oneToTwenty seed
-        new_player = Player.adjustInitiative player (playerInitiative + player.dexterity)
-        (new_enemies, newest_seed) =
-            List.map (\enemy -> setEnemyInitiative new_seed) enemies
+        player_inv = playerInitiative + player.dexterity
+        new_player = (Player (Player.adjustInitiative player player_inv), player_inv)
 
-        -- sortedInitiatives =
-        --     List.sortBy (\(_, a) (_, b) -> compare b a) (enemyInitiatives ++ [(player, playerInitiative)])
-
-        -- (newPlayer, newEnemies) =
-        --     List.foldl
-        --         (\(player, enemies) (enemy, _) ->
-        --             (Player.addInitiative player enemy, enemies))
-        --         (player, [])
-        --         sortedInitiatives
+        (enemy_inv_list, new_new_seed) = Random.step (RNG.randomListGen (List.length enemies) RNG.oneToTwenty) new_seed
+        combined_enemy_list = List.map2 Tuple.pair enemies enemy_inv_list
+        new_enemies = List.foldl setEnemyInitiative [] combined_enemy_list
+        final_list = sortInvValues <| new_player :: new_enemies
     in
-    (new_player, new_enemies, newest_seed)
+    (final_list, new_new_seed)
 
-setEnemyInitiative : Enemy.Enemy -> Random.Seed -> (Enemy.Enemy, Random.Seed) --TODO is this order correct?
-setEnemyInitiative enemy seed =
+setEnemyInitiative : (Enemy.Enemy, Int) -> List CharacterWithInitiative -> List CharacterWithInitiative
+setEnemyInitiative (enemy, inv) list =
     let
-        (initiative, new_seed) =
-            Random.step RNG.oneToTwenty seed
-        new_inv = initiative + enemy.dexterity
+        new_inv = inv + enemy.dexterity
     in
-    ({ enemy | initiative = new_inv }, new_seed)
+    (Enemy (Enemy.adjustInitiative enemy new_inv), new_inv) :: list
+
+sortInvValues : List CharacterWithInitiative -> List CharacterWithInitiative
+sortInvValues list =
+    List.sortBy Tuple.second list
 
 
-getAndSetInitiative : Player.Player -> List Enemy.Enemy -> Random.Seed -> (List Character, Random.Seed)
-getAndSetInitiative player enemies seed =
-    let
-        (new_player, new_enemies, new_seed) =
-            rollInitiative player enemies seed
-        -- playerInitiative =
-        --     Player.initiative new_player
-        -- enemyInitiatives =
-        --     List.map (\enemy -> (Enemy.name enemy, Enemy.initiative enemy)) new_enemies
+-- getAndSetInitiative : Player.Player -> List Enemy.Enemy -> Random.Seed -> (List Character, Random.Seed)
+-- getAndSetInitiative player enemies seed =
+--     let
+--         (inv_list, new_seed) =
+--             rollInitiative player enemies seed
+--         -- playerInitiative =
+--         --     Player.initiative new_player
+--         -- enemyInitiatives =
+--         --     List.map (\enemy -> (Enemy.name enemy, Enemy.initiative enemy)) new_enemies
 
-        list = [Player new_player] ++ (List.map (\enemy -> Enemy enemy) new_enemies)
-        sortedList =
-            List.sortBy (\char ->
-                            case char of
-                                Player p ->
-                                    p.turn_initiative
+--         -- list = [Player new_player] ++ (List.map (\enemy -> Enemy enemy) new_enemies)
+--         -- sortedList =
+--         --     List.sortBy (\char ->
+--         --                     case char of
+--         --                         Player p ->
+--         --                             p.turn_initiative
 
-                                Enemy e ->
-                                    e.turn_initiative
-                        ) list
-    in
-    ([], new_seed)
+--         --                         Enemy e ->
+--         --                             e.turn_initiative
+--         --                 ) list
+--         inv_dict = Dict.empty |> addToDict (Player new_player)
 
-getInitiative : Character -> Int
-getInitiative character =
-    case character of
-        Player player ->
-            player.turn_initiative
+--     in
+--     ([], new_seed)
 
-        Enemy enemy ->
-            enemy.turn_initiative
+-- addToDict : Character -> Dict.Dict Int Int -> Dict.Dict Int Int
+-- addToDict char dict =
+--     case char of
+--         Player p ->
+--             Dict.insert -1 p.turn_initiative dict
+--         Enemy e ->
+--             Dict.insert e.id e.turn_initiative dict
+-- getInitiative : Character -> Int
+-- getInitiative character =
+--     case character of
+--         Player player ->
+--             player.turn_initiative
+
+--         Enemy enemy ->
+--             enemy.turn_initiative

@@ -124,7 +124,7 @@ viewInGame model =
             viewStartedEntry (Maybe.withDefault Player.defaultPlayer model.player)
         Player.InRoom ->
             -- Show room scene
-            viewInRoom (Maybe.withDefault Player.defaultPlayer model.player) current_room model.distance_from_enemy model.room_entry_type
+            viewInRoom (Maybe.withDefault Player.defaultPlayer model.player) current_room model.distance_from_enemy model.room_entry_type model.show_player_action_options
         Player.BetweenRooms ->
             -- Show between room scene
             viewBetweenRooms (Maybe.withDefault Player.defaultPlayer model.player) current_room
@@ -134,6 +134,9 @@ viewInGame model =
         Player.Finished ->
             -- Show finished scene
             viewFinished (Maybe.withDefault Player.defaultPlayer model.player)
+        Player.Lost ->
+            -- Show lost scene
+            viewLost
         _ ->
             -- Should not be able to get here
             [ HS.text "Error, invalid player status" ]
@@ -158,8 +161,8 @@ viewStartedEntry _ =
             ]
     ]
 
-viewInRoom : Player.Player -> Level.Room -> Actions.Distance -> Level.RoomEntryType -> List (HS.Html Types.FrontendMsg)
-viewInRoom player room distance msg =
+viewInRoom : Player.Player -> Level.Room -> Actions.Distance -> Level.RoomEntryType -> Bool -> List (HS.Html Types.FrontendMsg)
+viewInRoom player room distance msg show_btns =
     let
         occ = 
             if List.length room.enemies > 1 then
@@ -180,17 +183,32 @@ viewInRoom player room distance msg =
                     "You proceed into the room."
         (attack_btn, move_btn) = 
             if distance == Actions.Range then
-                ( Btn.button (Types.PlayerAttack Actions.Range) (Just "Ranged Attack")
+                ( Btn.button (Types.PlayerAttack Actions.Range 1) (Just "Ranged Attack")
                     |> Btn.toHtml
                 , Btn.button (Types.PlayerMove Actions.Toward) (Just "Approach Guard")
                     |> Btn.toHtml
                 )
             else 
-                ( Btn.button (Types.PlayerAttack Actions.Melee) (Just "Melee Attack")
+                ( Btn.button (Types.PlayerAttack Actions.Melee 1) (Just "Melee Attack")
                     |> Btn.toHtml
                 , Btn.button (Types.PlayerMove Actions.Away) (Just "Push Guard Away")
                     |> Btn.toHtml
                 )
+        action_buttons = 
+            if show_btns then
+                [ move_btn
+                , attack_btn
+                , Btn.button (Types.PlayerTaunt) (Just "Taunt")
+                    |> Btn.toHtml
+                , Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack")
+                    |> Btn.toHtml
+                , Btn.button (Types.PlayerStealth) (Just "Enter Stealth")
+                    |> Btn.toHtml
+                , Btn.button (Types.PlayerHeal) (Just "Heal")
+                    |> Btn.toHtml
+                ]
+            else
+                []
     in
     [ HS.div
         [ HSA.css
@@ -207,17 +225,7 @@ viewInRoom player room distance msg =
                 [ TW.space_x_2
                 ]
             ]
-            [ move_btn
-            , attack_btn
-            , Btn.button (Types.PlayerTaunt) (Just "Taunt")
-                |> Btn.toHtml
-            , Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack")
-                |> Btn.toHtml
-            , Btn.button (Types.PlayerStealth) (Just "Enter Stealth")
-                |> Btn.toHtml
-            , Btn.button (Types.PlayerHeal) (Just "Heal")
-                |> Btn.toHtml
-            ]
+            action_buttons
         , Btn.button Types.JumpToFinish (Just "Skip to Finish")
             |> Btn.toHtml
         ]
@@ -250,7 +258,7 @@ viewBetweenRooms player room =
 
 viewBetweenLevels : Player.Player -> Level.Level -> List (HS.Html Types.FrontendMsg)
 viewBetweenLevels player level =
-    [ HS.text "Between levels" ]
+    [ HS.text "Between levels" ] --TODO add this functionality
 
 viewFinished : Player.Player -> List (HS.Html Types.FrontendMsg)
 viewFinished _ =   
@@ -265,6 +273,20 @@ viewFinished _ =
         , HS.text "Finally, the last of the police have been eliminated. The people of the city are free; free from laws, restrictions, and limits.\n"
         , HS.text "Let The Purge begin..."
         , Btn.button Types.ResetGame (Just "Reset Game")
+            |> Btn.toHtml
+        ]
+    ]
+
+viewLost : List (HS.Html Types.FrontendMsg)
+viewLost =
+    [ HS.div
+        [ HSA.css
+            [ TW.flex
+            , TW.flex_col
+            ]
+        ]
+        [ HS.text "You have failed. The city remains under tyranny." 
+        , Btn.button Types.ResetGame (Just "Start Over")
             |> Btn.toHtml
         ]
     ]
@@ -318,4 +340,12 @@ adjustAttributeDiv player attr points_remaining floor =
         , btn_up
         ]
 
-
+eventLogDiv : String -> HS.Html Types.FrontendMsg
+eventLogDiv string =
+    HS.div
+        [ HSA.css
+            [ 
+            ]
+        ]
+        [ HS.text string
+        ]

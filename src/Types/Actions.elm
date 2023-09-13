@@ -240,6 +240,28 @@ enemyCaptainActionOptions distance =
             , EnemyTaunt
             ]
 
+getEnemyActions : E.Enemy -> Distance -> (List EnemyAction, W.Weapon)
+getEnemyActions enemy distance =
+    case enemy.class of
+        E.Rogue ->
+            (enemyRogueActionOptions distance, W.Taser)
+
+        E.Spy ->
+            (enemySpyActionOptions distance, W.Pistol)
+
+        E.Warrior ->
+            (enemyWarriorActionOptions distance, W.MachineGun)
+
+        E.Tank ->
+            (enemyTankActionOptions distance, W.NightStick)
+
+        E.Boss ->
+
+            (enemyBossActionOptions distance W.MachineGun, W.MachineGun) --TODO Get Random Weapon
+
+        E.Captain ->
+            (enemyCaptainActionOptions distance, W.MachineGun) --TODO Get Random Weapon
+
 afterRoomEffect : AfterRoom -> List E.Enemy -> Random.Seed -> P.Player -> (P.Player, Random.Seed)
 afterRoomEffect effect enemy_list seed player =
     case effect of
@@ -262,10 +284,10 @@ afterRoomEffect effect enemy_list seed player =
         Rush ->
             (P.adjustRush 2 player, seed)
 
-getRandomCoins : E.Enemy -> (List Int, Random.Seed) -> (List Int, Random.Seed)
-getRandomCoins _ (coins, seed) =
-    let
-        (new_coins, new_seed) =
-            Random.step (Random.int 1 5) seed
-    in
-    (new_coins :: coins, new_seed)
+-- getRandomCoins : E.Enemy -> (List Int, Random.Seed) -> (List Int, Random.Seed)
+-- getRandomCoins _ (coins, seed) =
+--     let
+--         (new_coins, new_seed) =
+--             Random.step (Random.int 1 5) seed
+--     in
+--     (new_coins :: coins, new_seed)

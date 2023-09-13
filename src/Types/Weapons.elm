@@ -22,6 +22,10 @@ type AttackType
     = Melee
     | Ranged
 
+getTauntDamage : Enemy.Enemy -> Int
+getTauntDamage enemy =
+    enemy.charisma
+    
 getWeaponDamage : Character -> Weapon -> AttackType -> Int
 getWeaponDamage character weapon range =
     let

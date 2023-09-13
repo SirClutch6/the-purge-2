@@ -34,29 +34,29 @@ level1 =
     , rooms =
         [ { num = 1
           , items = [ Stapler ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyWarrior 1 ] -- TODO make these random from a pool
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyWarrior 1 1] -- TODO make these random from a pool
           }
         , { num = 2
           , items = [ StandingFan ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 1 ]
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 1 1]
           }
         , { num = 3
           , items = [ Chair ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 1 ]
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 1 1]
           }
         , { num = 4
           , items = [ Mug ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyTank 1 ]
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyTank 1 1]
           }
         , { num = 5
           , items = [ Stapler ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 1 
-                      , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 1 
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 1 1
+                      , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 1 2
                       ]
           }
         , { num = 6
           , items = [ StandingFan ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyBoss 1 ]
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyBoss 1 1]
           }
         ]
     }
@@ -68,31 +68,31 @@ level2 =
     , rooms =
         [ { num = 1
           , items = [ Stapler ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 2
-                      , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 2 
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 2 1
+                      , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 2 2
                       ] -- TODO make these random from a pool
           }
         , { num = 2
           , items = [ StandingFan ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyTank 2
-                      , Enemy.calculateEnemyHP <| Enemy.baseEnemyWarrior 2 
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyTank 2 1
+                      , Enemy.calculateEnemyHP <| Enemy.baseEnemyWarrior 2 2
                       ]
           }
         , { num = 3
           , items = [ Chair ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyWarrior 2
-                      , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 1 
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyWarrior 2 1
+                      , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 2 2 
                       ]
           }
         , { num = 4
           , items = [ Mug ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 2
-                      , Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 2 
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 2 1
+                      , Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 2 2
                       ]
           }
         , { num = 5
           , items = [ Stapler ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyBoss 2 ]
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyBoss 2 1]
           }
         ]
     }
@@ -104,25 +104,25 @@ level3 =
     , rooms =
         [ { num = 1
           , items = [ Stapler ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyTank 3
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyTank 3 1
                       ] -- TODO make these random from a pool
           }
         , { num = 2
           , items = [ StandingFan ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 3
-                      , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 3
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 3 1
+                      , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 3 2
                       ]
           }
         , { num = 3
           , items = [ Chair ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyWarrior 3
-                      , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 3
-                      , Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 3
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyWarrior 3 1
+                      , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 3 2
+                      , Enemy.calculateEnemyHP <| Enemy.baseEnemyRogue 3 3
                       ]
           }
         , { num = 5
           , items = [ Stapler ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyBoss 2 ]
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyBoss 2 1]
           }
         ]
     }
@@ -136,7 +136,7 @@ level4 =
           , items = [ ]
           , enemies = [ Enemy.calculateEnemyHP 
                             <| Enemy.getCaptainConstitution
-                            <| Enemy.baseEnemyCaptain 4 
+                            <| Enemy.baseEnemyCaptain 4 1
                       ] 
           }
         ]

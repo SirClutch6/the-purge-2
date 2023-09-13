@@ -9,6 +9,7 @@ import Types.Levels as Levels
 import Types.Player as Player
 import Types.VendingItems as VI
 import Types.Weapons as Weapon
+import Logic.Initiative as Inv
 
 import Random
 -- import Time
@@ -28,9 +29,12 @@ type alias Model =
     , points_to_spend : Int
     , room_entry_type : Levels.RoomEntryType
     , current_room : Int
+    , round_turn_list : List Inv.CharacterWithInitiative
+    , show_player_action_options : Bool
     , distance_from_enemy : Actions.Distance
     , current_level : Levels.Level
     , show_help_menu : Bool
+    , event_log : List String
     }
 
 type DefineModel
@@ -70,9 +74,12 @@ defineModel define_model =
     , points_to_spend = startingPoints
     , room_entry_type = Levels.Normal
     , current_room = 0
+    , round_turn_list = []
+    , show_player_action_options = False
     , distance_from_enemy = Actions.Range
     , current_level = Levels.level1
     , show_help_menu = False
+    , event_log = []
     }
 
 -- getTimeInt : Int

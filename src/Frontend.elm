@@ -23,6 +23,7 @@ import Html.Styled as HS
 import Html.Styled.Attributes as HSA
 import Html.Styled.Events as HSE
 import Task
+import Time
 
 -- import Element as E
 -- import Element.Background as EBa
@@ -59,7 +60,7 @@ init url key =
                     }
     in
     ( model
-    , Types.performMessage <| Types.GetTime
+    , Task.perform Types.GetCleanTime Time.now
     )
 
 
@@ -99,15 +100,43 @@ view model =
             if model.show_help_menu then
                 HS.div
                 [ HSA.css
-                    [ TW.bg_color TW.gray_200
+                    [ TW.bg_color TW.red_100
                     , TW.h_3over4
                     , TW.w_1over4
+                    , TW.absolute 
+                    , TW.right_0
                     ]
                 ]
                 [ HS.text "HELP" -- TODO add help info here
                 ]
             else
                 HS.text ""
+        log = List.map UI.eventLogDiv model.event_log
+        event_log =
+            HS.div
+            [ HSA.css
+                [ TW.bg_color TW.gray_200
+                , TW.h_3over4
+                , TW.w_1over4
+                , TW.absolute 
+                , TW.left_0
+                ]
+            ]
+            [ HS.div
+                [ HSA.css
+                    [ TW.underline
+                    ]
+                ]
+                [ HS.text "EVENT LOG" ]
+            , HS.div
+                [ HSA.css
+                    [ TW.left_0
+                    -- , TW.flex
+                    -- , TW.flex_col
+                    ]
+                ]
+                log
+            ]
     in
     { title = ""
     , body =
@@ -119,13 +148,15 @@ view model =
                 , TW.h_screen
                 , TW.w_screen
                 , TW.box_border
+                , TW.sticky
                 ]
             ]
-            [ HS.div
+            [ event_log
+            , HS.div
                 [ HSA.css
                     [ TW.bg_color TW.blue_200
                     , TW.h_3over4
-                    , TW.w_3over4
+                    , TW.w_2over4
                     , TW.justify_center
                     , TW.flex
                     , TW.text_center

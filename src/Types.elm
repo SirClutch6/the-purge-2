@@ -10,6 +10,7 @@ import Frontend.Model as FM
 import Types.Player as Player
 import Types.Levels as Level
 import Types.Actions as Action
+import Types.Enemy as Enemy
 import Time
 import Types.Player exposing (Player)
 
@@ -38,22 +39,25 @@ type FrontendMsg
     | EnterBuilding
     | SearchForAnotherWayIn
     | EnterRoom
+    | StartRound
+    | NextTurn
     | FinishRoom
     | FinishLevel
     | BetweenRoomRest Level.Room
     | BetweenRoomLoot Level.Room
     | BetweenRoomRush Level.Room
     -- Player Actions
-    | PlayerAttack Action.Distance
+    | PlayerAttack Action.Distance Int
     | PlayerMove Action.Direction
     | PlayerTaunt
     | PlayerFuriousAttack
     | PlayerStealth
     | PlayerHeal
+    | EnemyAction Enemy.Enemy
     | ShowHelp
+    | GameOver
     | ResetGame
     | JumpToFinish
-    | GetTime
     | GetCleanTime Time.Posix
 
 
