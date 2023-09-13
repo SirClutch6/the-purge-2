@@ -216,3 +216,42 @@ adjustCoins amount player =
 adjustInitiative : Player -> Int -> Player
 adjustInitiative player inv =
     { player | turn_initiative = inv }
+
+getStat : String -> Player -> Int
+getStat stat player =
+    case stat of
+        "HP" ->
+            player.hp
+
+        "Max HP" ->
+            player.max_hp
+
+        "Dexterity" ->
+            player.dexterity
+
+        "Strength" ->
+            player.strength
+
+        "Charisma" ->
+            player.charisma
+
+        "Constitution" ->
+            player.constitution
+
+        "Sanity" ->
+            player.sanity
+
+        "Max Sanity" ->
+            player.max_sanity
+
+        "Rush" ->
+            player.rush
+
+        "Coins" ->
+            player.coins
+
+        "Turn Initiative" ->
+            player.turn_initiative
+
+        _ ->
+            0

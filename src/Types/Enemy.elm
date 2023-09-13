@@ -22,6 +22,22 @@ type alias Enemy =
     , turn_initiative : Int
     }
 
+classToString : Class -> String
+classToString enemy_class =
+    case enemy_class of
+        Rogue ->
+            "Rogue"
+        Spy ->
+            "Spy"
+        Warrior ->
+            "Warrior"
+        Tank ->
+            "Tank"
+        Boss ->
+            "Boss"
+        Captain ->
+            "Captain"
+
 -- Get level from model
 
 defaultEnemy : Enemy
@@ -230,3 +246,27 @@ adjustHealth amount enemy =
 adjustInitiative : Enemy -> Int -> Enemy
 adjustInitiative enemy inv =
     { enemy | turn_initiative = inv }
+
+getStat : String -> Enemy -> Int
+getStat stat enemy =
+    case stat of
+        "HP" ->
+            enemy.hp
+        "Max HP" ->
+            enemy.max_hp
+        "Dexterity" ->
+            enemy.dexterity
+        "Strength" ->
+            enemy.strength
+        "Charisma" ->
+            enemy.charisma
+        "Constitution" ->
+            enemy.constitution
+        "Level" ->
+            enemy.level
+        "Rush" ->
+            enemy.rush
+        "Turn Initiative" ->
+            enemy.turn_initiative
+        _ ->
+            0

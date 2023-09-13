@@ -185,8 +185,9 @@ update msg model =
             else
                 let
                     (turn_order, new_seed) = Inv.rollInitiative player enemies model.random_seed
+                    new_turn_order = List.reverse turn_order
                 in
-                ( { model | round_turn_list = turn_order, random_seed = new_seed, event_log = new_log }
+                ( { model | round_turn_list = new_turn_order, random_seed = new_seed, event_log = new_log }
                 , Types.performMessage <| Types.NextTurn
                 )
         Types.NextTurn ->
@@ -213,17 +214,17 @@ update msg model =
                 )
             else
                 case next_turn of
-                    Just (Inv.Player _, _) ->
+                    Just (Inv.Player _, inv) ->
                         let
-                            new_log = "PLAYER turn" :: model.event_log
+                            new_log = ("PLAYER turn with initiative of " ++ String.fromInt inv) :: model.event_log
                         in
                         -- Wait for player action
                         ( { model | round_turn_list = new_list, show_player_action_options = True, event_log = new_log }
                         , Cmd.none
                         )
-                    Just (Inv.Enemy e, _) ->
+                    Just (Inv.Enemy e, inv) ->
                         let
-                            new_log = ("ENEMY " ++ (String.fromInt e.id) ++ " turn") :: model.event_log
+                            new_log = ("ENEMY " ++ (String.fromInt e.id) ++ " turn with initiative of " ++ String.fromInt inv) :: model.event_log
                         in
                         -- Do Enemy Action
                         ( { model | round_turn_list = new_list, event_log = new_log}
@@ -392,8 +393,18 @@ update msg model =
         Types.PlayerHeal ->
             let
                 new_log = "PLAYER performs SELF HEAL" :: model.event_log
+                player = 
+                    case model.player of
+                        Just p -> p
+                        Nothing -> Player.defaultPlayer |> Player.calculateHP --SHOULD NEVER HAPPEN
+                heal_amount = round (toFloat player.sanity / 10)
+                new_player =
+                    if player.class == Player.Tank then
+                        player |> Player.adjustHealth (heal_amount + 5)
+                    else
+                        player |> Player.adjustHealth heal_amount
             in
-            -- TODO Heal here
+            -- TODO cooldowns
             ( { model | show_player_action_options = False, event_log = new_log }
             , Types.performMessage <| Types.NextTurn
             )

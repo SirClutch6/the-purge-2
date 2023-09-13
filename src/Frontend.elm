@@ -184,8 +184,41 @@ viewGame model =
                 UI.viewPointBuy model
             else
                 UI.viewInGame model
+        -- reset_button =
+        --     [ HS.div
+        --         [ HSA.css
+        --             [ TW.absolute
+        --             , TW.top_4
+        --             -- , TW.inset_x_12
+        --             , TW.top_0
+        --             , TW.left_1over4
+        --             , TW.m_2
+        --             ]
+        --         ]
+        --         [ Btn.button Types.ResetGame (Just "Reset Game")
+        --             |> Btn.toHtml
+        --         ]
+        --     ]
+        player_info =
+            if model.class_picked then
+                UI.viewPlayerHelper model
+            else
+                []
+        help_button =
+            [ HS.div
+                [ HSA.css
+                    [ TW.absolute
+                    , TW.top_4
+                    -- , TW.inset_x_12
+                    , TW.right_1over4
+                    , TW.top_0
+                    , TW.m_2
+                    ]
+                ]
+                [ Btn.button Types.ShowHelp (Just "?")
+                    |> Btn.toHtml
+                ]
+            ]
     in
-    whatToView ++
-    [ Btn.button Types.ShowHelp (Just "?")
-            |> Btn.toHtml
-    ]
+    player_info ++ whatToView ++ help_button
+    

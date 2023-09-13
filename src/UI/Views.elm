@@ -14,6 +14,7 @@ import Html.Styled.Events as HSE
 import Types.Player as Player
 import Types.Levels as Level
 import Types.Actions as Actions
+import Types.Enemy as Enemy
 import Css exposing (move)
 
 viewGameNotStarted : FM.Model -> List (HS.Html Types.FrontendMsg)
@@ -26,12 +27,23 @@ viewGameNotStarted model =
             ]
         ]
         [ HS.div
-                [ 
+                [ HSA.css
+                    [ TW.absolute
+                    , TW.top_7
+                    ]
                 ]
-                [ HS.text "Welcome to my game!"
+                [ HS.text "THE PURGE"
                 ]
-        , Btn.button Types.StartGame (Just "Start Game")
-            |> Btn.toHtml
+        , HS.div
+            [ HSA.css
+                [ TW.absolute
+                , TW.top_2over3
+                ]
+            ]
+            [
+                Btn.button Types.StartGame (Just "Start Game")
+                    |> Btn.toHtml
+            ]
         ]
     ]
 
@@ -50,6 +62,8 @@ viewPickClass model =
         , HS.div
             [ HSA.css
                 [ TW.space_x_10
+                , TW.absolute
+                , TW.top_2over3
                 ]
             ]
             [ Btn.button Types.ChoseRogue (Just "Rogue")
@@ -82,12 +96,12 @@ viewPointBuy model =
                         ]
                     ]
                     [ HS.div
-                        [
+                        [ 
                         ]
                         [ HS.text <| "Character Class: " ++ Player.classToString player.class
                         ]
                     , HS.div
-                        [
+                        [ 
                         ]
                         [ HS.text <| "Character HP: " ++ (String.fromInt player.max_hp)
                         ]
@@ -100,8 +114,16 @@ viewPointBuy model =
                         ]
                         [ HS.text <| "You have " ++ (String.fromInt model.points_to_spend) ++ " points left to spend."
                         ]
-                    , Btn.button Types.ConfirmPointsBuy (Just "Finish") --Proceed/continue to game
-                        |> Btn.toHtml
+                    , HS.div
+                        [ HSA.css
+                            [ TW.absolute
+                            , TW.top_2over3
+                            ]
+                        ]
+                        [
+                            Btn.button Types.ConfirmPointsBuy (Just "Finish") --Proceed/continue to game
+                                |> Btn.toHtml
+                        ]
                     ]
                 ]
             Nothing ->
@@ -147,12 +169,26 @@ viewStartedEntry _ =
         [ HSA.css
             [ TW.flex
             , TW.flex_col
+            , TW.items_center
             ]
         ]
-        [ HS.text "From your surveilance you believe there is only one guard posted in the entry room to the building."
-        , HS.text "Would you like to enter through the doors, or search for another way in?"
+        [ HS.div
+            [ HSA.css
+                [ TW.absolute
+                , TW.top_1over3
+                ]
+            ]
+            [ textDivHelper "You hide outside the building."
+            , textDivHelper "From your surveilance you believe there is only one guard posted in the entry room to the building."
+            , textDivHelper "Would you like to enter through the doors, or search for another way in?" 
+            ]            
         , HS.div
-            []
+            [ HSA.css
+                [ TW.absolute
+                , TW.top_2over3
+                , TW.space_x_2
+                ]
+            ]
             [ Btn.button Types.EnterBuilding (Just "Enter")
                 |> Btn.toHtml
             , Btn.button Types.SearchForAnotherWayIn (Just "Search")
@@ -217,18 +253,18 @@ viewInRoom player room distance msg show_btns =
             , TW.items_center
             ]
         ]
-        [ HS.text ("HP: " ++ (String.fromInt player.hp) ++ "/" ++ (String.fromInt player.max_hp) ++ "\n")
-        , HS.text ("Sanity%: " ++ (String.fromInt player.sanity) ++ "\n")
-        , HS.text text
+        ([ HS.text text
         , HS.div
             [ HSA.css
                 [ TW.space_x_2
+                , TW.absolute
+                , TW.top_2over3
                 ]
             ]
             action_buttons
-        , Btn.button Types.JumpToFinish (Just "Skip to Finish")
-            |> Btn.toHtml
-        ]
+        -- , Btn.button Types.JumpToFinish (Just "Skip to Finish")
+        --     |> Btn.toHtml
+        ] ++ viewEnemyHelper room)
     ]
     
 
@@ -236,24 +272,35 @@ viewBetweenRooms : Player.Player -> Level.Room -> List (HS.Html Types.FrontendMs
 viewBetweenRooms player room =
     [ HS.div
         [ HSA.css
+            [ TW.flex
+            , TW.flex_col
+            ]
+        ]
+        [ HS.div
+        [ HSA.css
             [ 
             ]
         ]
-        [ HS.text "What will you do between rooms?"
+        [ HS.text "You have completed the room."
+        , HS.text "What will you do between rooms?"
+        , HS.text ("HP: " ++ (String.fromInt player.hp) ++ "/" ++ (String.fromInt player.max_hp) ++ "\n")
+        , HS.text ("Sanity%: " ++ (String.fromInt player.sanity) ++ "\n")
         ]
-    , HS.div
-        [ HSA.css
-            [ TW.space_x_10
+        , HS.div
+            [ HSA.css
+                [ TW.space_x_10
+                ]
+            ]
+            [ Btn.button (Types.BetweenRoomRest room) (Just "Rest")
+                |> Btn.toHtml
+            , Btn.button (Types.BetweenRoomLoot room) (Just "Loot")
+                |> Btn.toHtml
+            , Btn.button (Types.BetweenRoomRush room) (Just "Rush")
+                |> Btn.toHtml
             ]
         ]
-        [ Btn.button (Types.BetweenRoomRest room) (Just "Rest")
-            |> Btn.toHtml
-        , Btn.button (Types.BetweenRoomLoot room) (Just "Loot")
-            |> Btn.toHtml
-        , Btn.button (Types.BetweenRoomRush room) (Just "Rush")
-            |> Btn.toHtml
-        ]
     ]
+    
     
 
 viewBetweenLevels : Player.Player -> Level.Level -> List (HS.Html Types.FrontendMsg)
@@ -283,11 +330,19 @@ viewLost =
         [ HSA.css
             [ TW.flex
             , TW.flex_col
+            , TW.items_center
             ]
         ]
         [ HS.text "You have failed. The city remains under tyranny." 
-        , Btn.button Types.ResetGame (Just "Start Over")
-            |> Btn.toHtml
+        , HS.div
+            [ HSA.css
+                [ TW.absolute
+                , TW.top_2over3
+                ]
+            ] 
+            [ Btn.button Types.ResetGame (Just "Start Over")
+                |> Btn.toHtml
+            ]
         ]
     ]
 
@@ -345,6 +400,184 @@ eventLogDiv string =
     HS.div
         [ HSA.css
             [ 
+            ]
+        ]
+        [ HS.text string
+        ]
+
+viewPlayerHelper : FM.Model -> List (HS.Html Types.FrontendMsg)
+viewPlayerHelper model =
+    let
+        player =
+            case model.player of
+                Just p ->
+                    p
+                Nothing ->
+                    Player.defaultPlayer
+        stats = 
+            if model.point_buy_complete then
+                [ viewPlayerStatsHelper player "HP"
+                , viewPlayerStatsHelper player "Sanity"
+                , viewPlayerStatsHelper player "Dexterity"
+                , viewPlayerStatsHelper player "Strength"
+                , viewPlayerStatsHelper player "Charisma"
+                , viewPlayerStatsHelper player "Constitution"
+                , viewPlayerStatsHelper player "Rush"
+                , viewPlayerStatsHelper player "Coins"
+                , viewPlayerStatsHelper player "Turn Initiative"
+                ]
+            else
+                []
+    in
+    [ HS.div
+        [ HSA.css
+            [ TW.absolute
+            , TW.top_4
+            , TW.flex
+            , TW.flex_col
+            , TW.top_0
+            , TW.left_1over4
+            , TW.m_2
+            ]
+        ]
+        [ HS.div
+            [ HSA.css
+                [ TW.underline
+                , TW.flex
+                , TW.flex_row
+                , TW.space_x_2
+                ]
+            ]
+            [ HS.text <| "Player" ]
+        , HS.div
+            [ 
+            ]
+            ([ HS.div   
+                [ HSA.css
+                    [ TW.flex
+                    , TW.flex_row
+                    , TW.space_x_2
+                    ]
+                ]
+                [ HS.text <| "Class: "
+                , HS.text <| Player.classToString player.class
+                ]
+            ] ++ stats)
+        ]
+    ]
+
+viewPlayerStatsHelper : Player.Player -> String -> HS.Html Types.FrontendMsg
+viewPlayerStatsHelper player stat =
+    let
+        display =
+            if stat == "HP" then
+                HS.text <| (String.fromInt <| Player.getStat stat player) ++ "/" ++ (String.fromInt <| Player.getStat "Max HP" player)
+            else if stat == "Sanity" then
+                HS.text <| (String.fromInt <| Player.getStat stat player) ++ "%"
+            else
+                HS.text <| String.fromInt <| Player.getStat stat player
+    in
+    HS.div
+        [ HSA.css
+            [ TW.flex
+            , TW.flex_row
+            , TW.space_x_2
+            ]
+        ]
+        [ HS.text <| stat ++ ": "
+        , display
+        ]
+
+viewEnemyHelper : Level.Room -> List (HS.Html Types.FrontendMsg)
+viewEnemyHelper room =
+    let
+        enemies = room.enemies
+    in
+    [ HS.div
+        [ HSA.css
+            [ TW.absolute
+            , TW.top_1over3
+            -- , TW.flex
+            -- , TW.flex_col
+            -- , TW.top_0
+            -- , TW.left_1over4
+            , TW.m_2
+            , TW.space_x_5
+            ]
+        ]
+        ( List.map (\enemy -> viewEachEnemyHelper enemy) enemies )
+    ]
+    
+
+
+viewEachEnemyHelper : Enemy.Enemy -> HS.Html Types.FrontendMsg
+viewEachEnemyHelper enemy =
+    let
+        stats = 
+            [ viewEnemyStatsHelper enemy "HP"
+            , viewEnemyStatsHelper enemy "Rush"
+            , viewEnemyStatsHelper enemy "Turn Initiative"
+            ]
+    in
+    HS.div
+        [ HSA.css
+            [ TW.flex
+            , TW.flex_col
+            ]
+        ]
+        [ HS.div
+            [ HSA.css
+                [ TW.underline
+                , TW.flex
+                , TW.flex_row
+                , TW.space_x_2
+                ]
+            ]
+            [ HS.text <| ("Enemy" ++ String.fromInt enemy.id) ]
+        , HS.div
+            [ 
+            ]
+            ([ HS.div   
+                [ HSA.css
+                    [ TW.flex
+                    , TW.flex_row
+                    , TW.space_x_2
+                    ]
+                ]
+                [ HS.text <| "Class: "
+                , HS.text <| Enemy.classToString enemy.class
+                ]
+            ] ++ stats)
+        ]
+
+viewEnemyStatsHelper : Enemy.Enemy -> String -> HS.Html Types.FrontendMsg
+viewEnemyStatsHelper enemy stat =
+    let
+        display =
+            if stat == "HP" then
+                HS.text <| (String.fromInt <| Enemy.getStat stat enemy) ++ "/" ++ (String.fromInt <| Enemy.getStat "Max HP" enemy)
+            else
+                HS.text <| String.fromInt <| Enemy.getStat stat enemy
+    in
+    HS.div
+        [ HSA.css
+            [ TW.flex
+            , TW.flex_row
+            , TW.space_x_2
+            ]
+        ]
+        [ HS.text <| stat ++ ": "
+        , display
+        ]
+
+
+textDivHelper : String -> HS.Html Types.FrontendMsg
+textDivHelper string =
+    HS.div
+        [ HSA.css
+            [ TW.flex
+            , TW.flex_row
+            , TW.space_x_2
             ]
         ]
         [ HS.text string
