@@ -32,6 +32,8 @@ type alias Model =
     , current_room : Int
     , current_room_enemy_num : Int
     , round_turn_list : List Inv.CharacterWithInitiative
+    , selected_enemy_id : Int
+    -- , selected_enemy_distance : Actions.Distance
     , show_player_action_options : Bool
     , player_stealthed : (Bool, Int)
     , player_stealth_cooldown : Int
@@ -85,6 +87,8 @@ defineModel define_model =
     , current_room = 0
     , current_room_enemy_num = 0
     , round_turn_list = []
+    , selected_enemy_id = -1
+    -- , selected_enemy_distance = Actions.Range
     , show_player_action_options = False
     , player_stealthed = (False, 0)
     , player_stealth_cooldown = 0

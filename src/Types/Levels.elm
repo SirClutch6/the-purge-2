@@ -34,11 +34,13 @@ level1 =
     , rooms =
         [ { num = 1
           , items = [ Stapler ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyWarrior 1 1] -- TODO make these random from a pool
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 1 1
+                      -- , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 1 2
+                      ] -- TODO make these random from a pool
           }
         , { num = 2
           , items = [ StandingFan ]
-          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 1 1]
+          , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemyWarrior 1 1]
           }
         , { num = 3
           , items = [ Chair ]

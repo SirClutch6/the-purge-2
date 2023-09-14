@@ -793,8 +793,8 @@ viewEnemyHelper room =
         [ HSA.css
             [ TW.absolute
             , TW.top_1over3
-            -- , TW.flex
-            -- , TW.flex_col
+            , TW.flex
+            , TW.flex_row
             -- , TW.top_0
             -- , TW.left_1over4
             , TW.m_2
@@ -819,6 +819,10 @@ viewEachEnemyHelper enemy =
         [ HSA.css
             [ TW.flex
             , TW.flex_col
+            , TW.border_2
+            , TW.border_color TW.black
+            , TW.border_solid
+            , TW.p_2
             ]
         ]
         [ HS.div

@@ -185,10 +185,15 @@ update msg model =
             )
         Types.StartRound ->
             let
-                player = 
+                new_player = 
                     case model.player of
                         Just p -> p
                         Nothing -> Player.defaultPlayer --SHOULD NEVER HAPPEN
+                player =
+                    if new_player.sanity < 10 then
+                        new_player |> Player.adjustHealth (new_player.sanity - 10)
+                    else
+                        new_player
                 enemies = 
                     case model.current_level.rooms |> List.filter (\r -> r.num == model.current_room) |> List.head of
                         Just r -> r.enemies |> List.filter (\e -> e.hp > 0)
@@ -537,17 +542,25 @@ update msg model =
                 room = 
                     List.filter (\r -> r.num == model.current_room) model.current_level.rooms |> List.head |> Maybe.withDefault Level.defaultRoom
                 -- new_enemies = List.head room.enemies |> Maybe.withDefault Enemy.defaultEnemy |> Enemy.adjustHealth damage_dealt--TODO FIGURE OUT ENEMY STUFF HERE!!!
-                new_enemies = --TODO select enemy to attack
-                    case room.enemies of
-                        [] -> []
-                        (h::t) -> 
-                            let
-                                new_enemy = 
-                                    case (Enemy.adjustHealth (damage_dealt * -1) h) of
-                                        Nothing -> []
-                                        Just e -> [e]
-                            in
-                            new_enemy ++ t
+                new_enemies_list = --TODO select enemy to attack
+                    List.map (\e -> 
+                                if e.id == model.selected_enemy_id then 
+                                    (Enemy.adjustHealth (damage_dealt * -1) e)
+                                else 
+                                    e
+                            ) room.enemies
+                    -- case room.enemies of
+                    --     [] -> []
+                    --     (h::t) -> 
+                    --         let
+                    --             new_enemy = 
+                    --                 case ( h) of
+                    --                     Nothing -> []
+                    --                     Just e -> [e]
+                    --         in
+                    --         new_enemy ++ t
+                new_enemies =
+                    List.filter (\e -> e.hp > 0) new_enemies_list
                 (new_player, new_new_log) =
                     if (List.length new_enemies) < (List.length room.enemies) then
                         (Player.adjustSanity -3 player, "PLAYER has killed an enemy and lost 3 sanity" :: new_log)
@@ -678,7 +691,7 @@ update msg model =
                             (roll1, seed1) = Random.step RNG.oneToHundred new_seed
                             (roll2, seed2) = Random.step RNG.oneToHundred seed1
                         in
-                        case (roll1 < player.sanity, roll2 < player.sanity) of
+                        case (roll1 < (player.sanity + player.charisma), roll2 < player.sanity) of
                             (True, True) -> (True, True, seed2)
                             (True, False) -> (True, False, seed2)
                             (False, True) -> (False, True, seed2)

@@ -103,29 +103,30 @@ view model =
         help_menu =
             if model.show_help_menu then
                 HS.div
-                [ HSA.css
-                    [ TW.bg_color TW.red_100
-                    , TW.h_3over4
-                    , TW.w_1over4
-                    , TW.absolute 
-                    , TW.right_0
-                    ]
-                ]
-                [ HS.div
                     [ HSA.css
-                        [ TW.underline
+                        [ TW.bg_color TW.red_100
+                        , TW.h_3over4
+                        , TW.w_1over4
+                        , TW.absolute 
+                        , TW.right_0
+                        , TW.overflow_auto
                         ]
                     ]
-                    [ HS.text "HELP" ]
-                , HS.div
-                    [ HSA.css
-                        [ TW.left_0
-                        -- , TW.flex
-                        -- , TW.flex_col
+                    [ HS.div
+                        [ HSA.css
+                            [ TW.underline
+                            ]
                         ]
+                        [ HS.text "HELP" ]
+                    , HS.div
+                        [ HSA.css
+                            [ TW.left_0
+                            -- , TW.flex
+                            -- , TW.flex_col
+                            ]
+                        ]
+                        help
                     ]
-                    help
-                ]
             else
                 HS.text ""
         log = List.map UI.eventLogDiv model.event_log
@@ -137,6 +138,7 @@ view model =
                 , TW.w_1over4
                 , TW.absolute 
                 , TW.left_0
+                , TW.overflow_auto
                 ]
             ]
             [ HS.div

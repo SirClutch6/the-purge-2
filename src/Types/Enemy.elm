@@ -8,6 +8,10 @@ type Class
     | Boss
     | Captain
 
+-- type EnemyDistance
+--     = Melee
+--     | Range
+
 type alias Enemy =
     { class : Class
     , id : Int
@@ -20,6 +24,7 @@ type alias Enemy =
     , level : Int
     , rush : Int
     , turn_initiative : Int
+    -- , distance_from_player : EnemyDistance
     }
 
 classToString : Class -> String
@@ -53,6 +58,7 @@ defaultEnemy =
     , level = 0
     , rush = 0
     , turn_initiative = 0
+    -- , distance_from_player = Range
     }
 
 baseEnemyRogue : Int -> Int -> Enemy
@@ -68,6 +74,7 @@ baseEnemyRogue level id =
     , level = level
     , rush = 0
     , turn_initiative = 0
+    -- , distance_from_player = Range
     }
 
 baseEnemySpy : Int -> Int -> Enemy
@@ -83,6 +90,7 @@ baseEnemySpy level id =
     , level = level
     , rush = 0
     , turn_initiative = 0
+    -- , distance_from_player = Range
     }
 
 baseEnemyWarrior : Int -> Int -> Enemy
@@ -98,6 +106,7 @@ baseEnemyWarrior level id =
     , level = level
     , rush = 0
     , turn_initiative = 0
+    -- , distance_from_player = Range
     }
 
 baseEnemyTank : Int -> Int -> Enemy
@@ -113,6 +122,7 @@ baseEnemyTank level id =
     , level = level
     , rush = 0
     , turn_initiative = 0
+    -- , distance_from_player = Range
     }
 
 baseEnemyBoss : Int -> Int -> Enemy
@@ -128,6 +138,7 @@ baseEnemyBoss level id =
     , level = level
     , rush = 0
     , turn_initiative = 0
+    -- , distance_from_player = Range
     }
 
 baseEnemyCaptain : Int -> Int -> Enemy
@@ -143,10 +154,8 @@ baseEnemyCaptain level id =
     , level = level
     , rush = 0
     , turn_initiative = 0
+    -- , distance_from_player = Range
     }
-
--- q: how do i get a random number in elm?
--- a: https://package.elm-lang.org/packages/elm/random/latest/Random
 
 getCaptainConstitution : Enemy -> Enemy
 getCaptainConstitution captain =
@@ -227,7 +236,7 @@ adjustRush amount enemy =
         _ ->
             enemy
 
-adjustHealth : Int -> Enemy -> Maybe Enemy
+adjustHealth : Int -> Enemy -> Enemy
 adjustHealth amount enemy =
     let
         new_hp = 
@@ -238,10 +247,7 @@ adjustHealth amount enemy =
             else
                 enemy.hp + amount
     in
-    if new_hp == 0 then
-        Nothing
-    else
-        Just { enemy | hp = new_hp }
+    { enemy | hp = new_hp }
 
 adjustInitiative : Enemy -> Int -> Enemy
 adjustInitiative enemy inv =
