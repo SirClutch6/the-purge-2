@@ -111,8 +111,11 @@ update msg model =
                         Just p -> p
                         Nothing -> Player.baseRogue |> Player.calculateHP --SHOULD NEVER HAPPEN
                 new_log = "PLAYER has finalized character attributes" :: model.event_log
+                (new_level, new_seed) = Level.level1 model.random_seed
             in
-            ( { model | temp_player = Just player, point_buy_complete = True, player_status = Player.StartedEntry, event_log = new_log }
+            ( { model | temp_player = Just player, point_buy_complete = True
+                      , player_status = Player.StartedEntry, event_log = new_log, current_level = new_level, random_seed = new_seed 
+                      }
             , Cmd.none
             )
         Types.ConfirmPointsBuyBetweenLevel ->
@@ -379,15 +382,18 @@ update msg model =
         Types.FinishLevel ->
             let
                 new_log = "PLAYER has finished the level" :: model.event_log
-                (new_level, status) =
+                ((new_level, new_seed), status) =
                     case model.current_level.level of
-                        1 -> (Level.level2, Player.BetweenLevels)
-                        2 -> (Level.level3, Player.BetweenLevels)
-                        3 -> (Level.level4, Player.BetweenLevels)
-                        4 -> (model.current_level, Player.Finished)
-                        _ -> (model.current_level, Player.Finished)
+                        1 -> (Level.level2 model.random_seed, Player.BetweenLevels)
+                        2 -> (Level.level3 model.random_seed, Player.BetweenLevels)
+                        3 -> (Level.level4 model.random_seed, Player.BetweenLevels)
+                        4 -> ((model.current_level, model.random_seed), Player.Finished)
+                        _ -> ((model.current_level, model.random_seed), Player.Finished)
             in
-            ( { model | player_status = status, current_level = new_level, current_room = 0, event_log = new_log, points_to_spend = 3, point_buy_complete = False }
+            ( { model | player_status = status, current_level = new_level, current_room = 0
+                      , event_log = new_log, points_to_spend = 3, point_buy_complete = False
+                      , random_seed = new_seed
+                      }
             , Cmd.none
             )
         Types.BetweenRoomRest room->
@@ -780,7 +786,7 @@ update msg model =
                       , points_to_spend = 10
                       , point_buy_complete = False
                       , player_status = Player.NotStarted
-                      , current_level = Level.level1
+                      , current_level = Level.level0
                       , current_room = 0
                       , player_stealthed = (False, 0)
                       , player_stealth_cooldown = 0

@@ -97,7 +97,7 @@ defineModel define_model =
     , furious_attack_cooldown = 0
     , self_heal_cooldown = 0
     , distance_from_enemy = Actions.Range
-    , current_level = Levels.level1
+    , current_level = Levels.level0
     , show_help_menu = False
     , event_log = []
     }

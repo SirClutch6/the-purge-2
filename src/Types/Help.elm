@@ -26,6 +26,7 @@ helpInfo =
     , "- If there are multiple ENEMIES in a room, they will always stay together"
     , "---------------------"
     , "Actions: *Note: A PLAYER will lose their weapon until the end of the room if they perform a ranged attack"
+    , "- If there are multiple enemies, you may select which enemy to target"
     , "Ranged Attack -> Attacks an enemy from a distance"
     , "Melee Attack -> Attacks an enemy in melee range"
     , "Move Towards Enemy -> Move into melee range of an enemy"
@@ -62,4 +63,22 @@ helpInfo =
     , "Juice (5 coins) -> Recover 10% sanity"
     , "Hot Chocolate (10 coins) -> Fully heal and recover hp and sanity"
     , "Protein Shake (20 coins) -> Gain 10 permanent max health"
+    ]
+
+startInfo : List String
+startInfo =
+    [ "Your beloved city is imperfect."
+    , "For years now, the city has been oppresed by a powerful tyrant and his ruthless army."
+    , "You have started and led a rebellion that has slowly made progress against your enemies."
+    , "Now, you have cornered the tyrant with the remainder of his army in the strongest building in the city."
+    , "All of your followers are too scared to attack the building, but you know that you must."
+    , "Will you fight off this tyrant and free your city?"
+    ]
+
+creditInfo : List String
+creditInfo =
+    [ "Elm Jam #6"
+    , "Designed and Engineered by: Matthew Bentley"
+    , "Copyright 2023 Crazy Cockatoo Games tm"
+    , "Please send any feedback to the_purge@crazycockatoogames.com"
     ]

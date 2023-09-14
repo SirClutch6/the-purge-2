@@ -16,11 +16,63 @@ import Types.Levels as Level
 import Types.Actions as Actions
 import Types.Enemy as Enemy
 import Types.Weapons as Weapon
+import Types.Help as Help
 
 import Css
 
 viewGameNotStarted : FM.Model -> List (HS.Html Types.FrontendMsg)
 viewGameNotStarted model =
+    let
+        gInfo = List.map helpDiv Help.startInfo
+        cInfo = List.map helpDiv Help.creditInfo
+        gameInfo = 
+            HS.div
+                [ HSA.css
+                    [ TW.absolute 
+                    , TW.top_1over4
+                    ]
+                ]
+                [ HS.div
+                    [ HSA.css
+                        [ 
+                        ]
+                    ]
+                    gInfo
+                , HS.div
+                    [
+                    ]
+                    [ HS.text <| "-------------------------------"
+                    ]
+                , HS.div
+                    [
+                    ]
+                    [ HS.text <| "-------------------------------"
+                    ]
+                , HS.div
+                    [ HSA.css
+                        [
+                        ]
+                    ]
+                    cInfo
+                , HS.div
+                        [ HSA.css
+                            [
+                            ]
+                        -- , HSE.onClick
+                        ]
+                        [ HS.text <| "CCG"
+                        ]
+                , HS.div
+                    [ HSA.css
+                        [
+                        ]
+                    -- , HSE.onClick
+                    ]
+                    [ HS.text <| "Source Code"
+                    ]
+                
+                ]
+    in
     [ HS.div
         [ HSA.css
             [ TW.flex
@@ -36,6 +88,7 @@ viewGameNotStarted model =
                 ]
                 [ HS.text "THE PURGE"
                 ]
+        , gameInfo
         , HS.div
             [ HSA.css
                 [ TW.absolute
@@ -130,7 +183,7 @@ viewPointBuy model =
                         ]
                         [ Btn.button Types.ReturnToClassChoice (Just "Back")
                             |> Btn.toHtml
-                        , Btn.button finish_msg (Just "Start") --Proceed/continue to game
+                        , Btn.button finish_msg (Just "Continue") --Proceed/continue to game
                             |> Btn.toHtml
                         ]
                     ]

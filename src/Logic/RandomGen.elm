@@ -24,6 +24,10 @@ oneToFive : Random.Generator Int
 oneToFive =
     Random.int 1 5
 
+zeroToThree : Random.Generator Int
+zeroToThree =
+    Random.int 0 3
+
 zeroToOne : Random.Generator Int
 zeroToOne =
     Random.int 0 1

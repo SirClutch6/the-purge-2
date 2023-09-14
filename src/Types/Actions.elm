@@ -209,15 +209,33 @@ enemyTankActionOptions distance =
             , EnemyTaunt
             ]
 
-enemyBossActionOptions : Distance -> W.Weapon -> List EnemyAction
-enemyBossActionOptions distance weapon =
+enemyBossActionOptions : Distance -> List EnemyAction
+enemyBossActionOptions distance =
     case distance of -- TODO depends on random weapon
         Melee ->
-            [ 
+            [ EnemyMeleeAttack
+            , EnemyMeleeAttack
+            , EnemyMeleeAttack
+            , EnemyMeleeAttack
+            , EnemyMeleeAttack
+            , EnemyMeleeAttack
+            , EnemyMeleeAttack
+            , EnemyMeleeAttack
+            , EnemyTaunt
+            , EnemyTaunt
             ]
 
         Range ->
-            [ 
+            [ EnemyRangedAttack
+            , EnemyRangedAttack
+            , EnemyRangedAttack
+            , EnemyRangedAttack
+            , EnemyRangedAttack
+            , EnemyRangedAttack
+            , EnemyRangedAttack
+            , EnemyRangedAttack
+            , EnemyTaunt
+            , EnemyTaunt
             ]
 
 enemyCaptainActionOptions : Distance -> List EnemyAction
@@ -266,10 +284,13 @@ getEnemyActions enemy distance =
 
         E.Boss ->
 
-            (enemyBossActionOptions distance W.MachineGun, W.MachineGun) --TODO Get Random Weapon
+            (enemyBossActionOptions distance, W.MachineGun)
 
         E.Captain ->
-            (enemyCaptainActionOptions distance, W.MachineGun) --TODO Get Random Weapon
+            if distance == Range then
+                (enemyCaptainActionOptions distance, W.MachineGun)
+            else 
+                (enemyCaptainActionOptions distance, W.NightStick)
 
 afterRoomEffect : AfterRoom -> Int -> Random.Seed -> P.Player -> (P.Player, Random.Seed)
 afterRoomEffect effect num_enemies seed player =
