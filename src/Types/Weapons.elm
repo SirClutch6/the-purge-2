@@ -1,7 +1,10 @@
 module Types.Weapons exposing (..)
 
-import Player as Player
-import Enemy as Enemy
+import Types.Player as Player
+import Types.Enemy as Enemy
+import Logic.RandomGen as RNG
+
+import Random
 
 type Character
     = Player Player.Player
@@ -22,83 +25,118 @@ type AttackType
     = Melee
     | Ranged
 
-getWeaponDamage : Character -> Weapon -> AttackType -> Int
-getWeaponDamage character weapon range =
-    case weapon of
-        Taser ->
-            case range of
-                Melee ->
-                    character.dexterity + 3
+getTauntDamage : Enemy.Enemy -> Int
+getTauntDamage enemy =
+    enemy.charisma
 
-                Ranged ->
-                    character.strength - 2
+getWeaponDamage : Character -> Weapon -> AttackType -> Random.Seed -> (Int, Random.Seed)
+getWeaponDamage character weapon range seed=
+    let
+        (damage, new_seed) =
+            calcWeaponDamage character weapon range seed
+    in
+    if damage < 0 then
+        (0, new_seed)
+    else
+        (damage, new_seed)
+        
+calcWeaponDamage : Character -> Weapon -> AttackType -> Random.Seed -> (Int, Random.Seed)
+calcWeaponDamage character weapon range seed =
+    let
+        d = case character of
+            Player player ->
+                player.dexterity
 
-        Pistol ->
-            case range of
-                Melee ->
-                    character.strength - 1
+            Enemy enemy ->
+                enemy.dexterity
+        (dex, new_seed) = Random.step (RNG.oneToCustom d) seed
 
-                Ranged ->
-                    character.dexterity + 2
+        s = case character of
+            Player player ->
+                player.strength
 
-        MachineGun ->
-            case range of
-                Melee ->
-                    character.strength + 0
+            Enemy enemy ->
+                enemy.strength
+        (str, new_new_seed) = Random.step (RNG.oneToCustom s) new_seed
 
-                Ranged ->
-                    character.dexterity + 3
+        calculated_damage =
+            case weapon of
+                Taser ->
+                    case range of
+                        Melee ->
+                            dex + 3
 
-        NightStick ->
-            case range of
-                Melee ->
-                    character.strength + 3
+                        Ranged ->
+                            str - 2
 
-                Ranged ->
-                    character.strength - 2
+                Pistol ->
+                    case range of
+                        Melee ->
+                            str - 1
 
-        Blade ->
-            case range of
-                Melee ->
-                    character.dexterity + 2
+                        Ranged ->
+                            dex + 2
 
-                Ranged ->
-                    character.dexterity + 0
+                MachineGun ->
+                    case range of
+                        Melee ->
+                            str + 0
 
-        Spear ->
-            case range of
-                Melee ->
-                    character.dexterity + 1
+                        Ranged ->
+                            dex + 3
 
-                Ranged ->
-                    character.strength + 1
+                NightStick ->
+                    case range of
+                        Melee ->
+                            str + 3
 
-        Club ->
-            case range of
-                Melee ->
-                    character.strength + 2
+                        Ranged ->
+                            str - 2
 
-                Ranged ->
-                    character.strength - 2
+                Blade ->
+                    case range of
+                        Melee ->
+                            dex + 2
 
-        None ->
-            case range of
-                Melee ->
-                    let
-                        num = max character.strength character.dexterity
-                    in
-                    round (num / 2)
+                        Ranged ->
+                            str + 0
 
-                Ranged ->
-                    -1
+                Spear ->
+                    case range of
+                        Melee ->
+                            dex + 1
 
-        Other _ ->
-            case range of
-                Melee ->
-                    character.strength - 1
+                        Ranged ->
+                            str + 1
 
-                Ranged ->
-                    character.strength - 2
+                Club ->
+                    case range of
+                        Melee ->
+                            str + 2
+
+                        Ranged ->
+                            str - 2
+
+                None ->
+                    case range of
+                        Melee ->
+                            let
+                                num = toFloat <| max str dex
+                            in
+                            round (num / 2)
+
+                        Ranged ->
+                            -1
+
+                Other _ ->
+                    case range of
+                        Melee ->
+                            str - 1
+
+                        Ranged ->
+                            str - 2
+        in
+        (calculated_damage, new_new_seed)
 
 weaponToString : Weapon -> String
 weaponToString weapon =

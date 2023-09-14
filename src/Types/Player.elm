@@ -1,10 +1,25 @@
 module Types.Player exposing (..)
 
+type Status
+    = NotStarted
+    | StartedEntry
+    | InRoom
+    | BetweenRooms
+    | BetweenLevels
+    | Finished
+    | Lost
+
 type Class
     = Rogue
     | Spy
     | Warrior
     | Tank
+
+type Attribute
+    = Dexterity
+    | Strength
+    | Charisma
+    | Constitution
 
 type alias Player =
     { class : Class
@@ -18,7 +33,39 @@ type alias Player =
     , max_sanity : Int
     , rush : Int
     , coins : Int
+    , turn_initiative : Int
     -- , perks : List Perk
+    }
+
+classToString : Class -> String
+classToString class =
+    case class of
+        Rogue ->
+            "Rogue"
+
+        Spy ->
+            "Spy"
+
+        Warrior ->
+            "Warrior"
+
+        Tank ->
+            "Tank"
+
+defaultPlayer : Player
+defaultPlayer =
+    { class = Rogue
+    , hp = 0
+    , max_hp = 0
+    , dexterity = 0
+    , strength = 0
+    , charisma = 0
+    , constitution = 0
+    , sanity = 0
+    , max_sanity = 0
+    , rush = 0
+    , coins = 0
+    , turn_initiative = 0
     }
 
 baseRogue : Player
@@ -34,6 +81,7 @@ baseRogue =
     , max_sanity = 100
     , rush = 0
     , coins = 0
+    , turn_initiative = 0
     }
 
 baseSpy : Player
@@ -49,6 +97,7 @@ baseSpy =
     , max_sanity = 100
     , rush = 0
     , coins = 0
+    , turn_initiative = 0
     }
 
 baseWarrior : Player
@@ -64,6 +113,7 @@ baseWarrior =
     , max_sanity = 100
     , rush = 0
     , coins = 0
+    , turn_initiative = 0
     }
 
 baseTank : Player
@@ -79,6 +129,7 @@ baseTank =
     , max_sanity = 100
     , rush = 0
     , coins = 0
+    , turn_initiative = 0
     }
 
 calculateHP : Player -> Player
@@ -88,18 +139,18 @@ calculateHP player =
         new_hp =
             case player.class of
                 Rogue ->
-                    base_hp + player.constitution * 1.0
+                    base_hp + (toFloat player.constitution) * 1.0
 
                 Spy ->
-                    base_hp + player.constitution * 1.2
+                    base_hp + (toFloat player.constitution) * 1.2
 
                 Warrior ->
-                    base_hp + player.constitution * 1.5
+                    base_hp + (toFloat player.constitution) * 1.5
 
                 Tank ->
-                    base_hp + player.constitution * 2.0
+                    base_hp + (toFloat player.constitution) * 2.0
     in
-    { player | hp = new_hp, max_hp = new_hp }
+    { player | hp = round new_hp, max_hp = round new_hp }
 
 adjustHealth : Int -> Player -> Player
 adjustHealth amount player =
@@ -161,3 +212,46 @@ adjustCoins amount player =
                 player.coins + amount
     in
     { player | coins = new_coins }
+
+adjustInitiative : Player -> Int -> Player
+adjustInitiative player inv =
+    { player | turn_initiative = inv }
+
+getStat : String -> Player -> Int
+getStat stat player =
+    case stat of
+        "HP" ->
+            player.hp
+
+        "Max HP" ->
+            player.max_hp
+
+        "Dexterity" ->
+            player.dexterity
+
+        "Strength" ->
+            player.strength
+
+        "Charisma" ->
+            player.charisma
+
+        "Constitution" ->
+            player.constitution
+
+        "Sanity" ->
+            player.sanity
+
+        "Max Sanity" ->
+            player.max_sanity
+
+        "Rush" ->
+            player.rush
+
+        "Coins" ->
+            player.coins
+
+        "Turn Initiative" ->
+            player.turn_initiative
+
+        _ ->
+            0
