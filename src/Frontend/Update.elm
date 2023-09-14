@@ -66,6 +66,13 @@ update msg model =
             ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Club, base_weapon = Weapon.Club, event_log = new_log }
             , Cmd.none
             )
+        Types.ReturnToClassChoice ->
+            let
+                new_log = List.drop 1 model.event_log
+            in
+            ( { model | player = Nothing, temp_player = Nothing, class_picked = False, current_weapon = Weapon.None, base_weapon = Weapon.None, event_log = new_log }
+            , Cmd.none
+            )
         Types.AdjustAttr attr amount->
             let
                 player = 
@@ -169,8 +176,11 @@ update msg model =
         Types.EnterRoom ->
             let
                 new_log = "********PLAYER enters the room********" :: model.event_log
+                new_room_num = model.current_room + 1
+                new_room = List.filter (\r -> r.num == new_room_num) model.current_level.rooms |> List.head |> Maybe.withDefault Level.defaultRoom
+                enemy_num = new_room.enemies |> List.length
             in
-            ( { model | player_status = Player.InRoom, current_room = model.current_room + 1, event_log = new_log, distance_from_enemy = Action.Range }
+            ( { model | player_status = Player.InRoom, current_room = new_room_num, event_log = new_log, distance_from_enemy = Action.Range, current_room_enemy_num = enemy_num }
             , Types.performMessage <| Types.StartRound
             )
         Types.StartRound ->
@@ -377,7 +387,7 @@ update msg model =
         Types.BetweenRoomRest room->
             let
                 new_log = "PLAYER has chosen to rest" :: model.event_log
-                room_enemies = room.enemies
+                room_enemies = model.current_room_enemy_num
                 new_player = 
                     case model.player of
                         Just p -> p
@@ -421,7 +431,7 @@ update msg model =
         Types.BetweenRoomLoot room ->
             let
                 new_log = "PLAYER has chosen to loot" :: model.event_log
-                room_enemies = room.enemies
+                room_enemies = model.current_room_enemy_num
                 new_player = 
                     case model.player of
                         Just p -> p
@@ -438,7 +448,7 @@ update msg model =
             let
                 new_log = "PLAYER has chosen to rush into the next room" :: model.event_log
                 new_new_log = "Player gains one free action in the next room" :: new_log
-                room_enemies = room.enemies
+                room_enemies = model.current_room_enemy_num
                 new_player = 
                     case model.player of
                         Just p -> p
@@ -521,7 +531,8 @@ update msg model =
                     case model.player of
                         Just p -> p
                         Nothing -> Player.baseRogue |> Player.calculateHP --SHOULD NEVER HAPPEN
-                damage_dealt = (Weapon.getWeaponDamage (Weapon.Player player) model.current_weapon attack_type) * mod
+                (dmg, new_seed) = (Weapon.getWeaponDamage (Weapon.Player player) model.current_weapon attack_type) model.random_seed
+                damage_dealt = dmg * mod
                 new_log = ("PLAYER attacks with " ++ (Weapon.weaponToString model.current_weapon) ++ " for " ++ (String.fromInt damage_dealt) ++ " damage") :: model.event_log
                 room = 
                     List.filter (\r -> r.num == model.current_room) model.current_level.rooms |> List.head |> Maybe.withDefault Level.defaultRoom
@@ -549,7 +560,10 @@ update msg model =
                 new_current_level = 
                     { the_current_level | rooms = all_rooms }
             in 
-            ( { model | current_level = new_current_level, show_player_action_options = False, event_log = new_new_log, current_weapon = new_weapon, player = Just new_player }
+            ( { model | current_level = new_current_level, show_player_action_options = False
+                      , event_log = new_new_log, current_weapon = new_weapon, player = Just new_player
+                      , random_seed = new_seed
+                     }
             , Types.performMessage <| Types.NextTurn
             )
 
@@ -589,6 +603,15 @@ update msg model =
         Types.PlayerFuriousAttack ->
             let
                 new_log = "PLAYER performs a furious attack" :: model.event_log
+                player =
+                    case model.player of
+                        Just p -> p
+                        Nothing -> Player.defaultPlayer |> Player.calculateHP --SHOULD NEVER HAPPEN
+                mod = 
+                    if player.class == Player.Warrior then
+                        2
+                    else
+                        1.5
             in
             -- TODO implement cooldown and negative effect
             ( { model | show_player_action_options = False, event_log = new_log, furious_attack_cooldown = 5 }
@@ -661,11 +684,12 @@ update msg model =
                             (False, True) -> (False, True, seed2)
                             (False, False) -> (False, False, seed2)
                     action = Array.fromList possible_actions |> Array.get rand_num |> Maybe.withDefault Action.EnemyTaunt
-                    (new_player, new_distance, new_log) =
+                    (new_player, new_distance, (new_log, newest_seed)) =
                         case action of
                             Action.EnemyRangedAttack ->
                                 let
-                                    dmg = toFloat (Weapon.getWeaponDamage (Weapon.Enemy enemy) weapon Weapon.Ranged)
+                                    (d, returned_seed) = (Weapon.getWeaponDamage (Weapon.Enemy enemy) weapon Weapon.Ranged new_seed1)
+                                    dmg = toFloat d
                                     new_dmg =
                                         if Tuple.first model.enemy_taunted && sanity1_roll then
                                             dmg / 2
@@ -679,11 +703,12 @@ update msg model =
                                     rounded_dmg = round new_new_dmg
                                     p = Player.adjustHealth (rounded_dmg * -1) player
                                 in
-                                    (p, model.distance_from_enemy, ("ENEMY " ++ (String.fromInt enemy.id) ++ " attacks with " ++ (Weapon.weaponToString weapon) ++ " for " ++ (String.fromInt rounded_dmg) ++ " damage") :: model.event_log)
+                                    (p, model.distance_from_enemy, (("ENEMY " ++ (String.fromInt enemy.id) ++ " attacks with " ++ (Weapon.weaponToString weapon) ++ " for " ++ (String.fromInt rounded_dmg) ++ " damage") :: model.event_log, returned_seed))
 
                             Action.EnemyMeleeAttack ->
                                 let
-                                    dmg = toFloat (Weapon.getWeaponDamage (Weapon.Enemy enemy) weapon Weapon.Melee)
+                                    (d, returned_seed) = (Weapon.getWeaponDamage (Weapon.Enemy enemy) weapon Weapon.Melee new_seed1)
+                                    dmg = toFloat d
                                     new_dmg =
                                         if Tuple.first model.enemy_taunted && sanity1_roll then
                                             dmg / 2
@@ -697,23 +722,23 @@ update msg model =
                                     rounded_dmg = round new_new_dmg
                                     p = Player.adjustHealth (rounded_dmg * -1) player
                                 in
-                                    (p, model.distance_from_enemy, ("ENEMY " ++ (String.fromInt enemy.id) ++ " attacks with " ++ (Weapon.weaponToString weapon) ++ " for " ++ (String.fromInt rounded_dmg) ++ " damage") :: model.event_log)
+                                    (p, model.distance_from_enemy, (("ENEMY " ++ (String.fromInt enemy.id) ++ " attacks with " ++ (Weapon.weaponToString weapon) ++ " for " ++ (String.fromInt rounded_dmg) ++ " damage") :: model.event_log, returned_seed))
 
                             Action.EnemyMove direction->
                                 if direction == Action.Toward then
-                                    ( player, Action.Melee, ("ENEMY " ++ (String.fromInt enemy.id) ++ " moves TOWARD the player") :: model.event_log)
+                                    ( player, Action.Melee, (("ENEMY " ++ (String.fromInt enemy.id) ++ " moves TOWARD the player") :: model.event_log, new_seed1))
                                 else
-                                    ( player, Action.Range, ("ENEMY " ++ (String.fromInt enemy.id) ++ " moves AWAY from the player") :: model.event_log)
+                                    ( player, Action.Range, (("ENEMY " ++ (String.fromInt enemy.id) ++ " moves AWAY from the player") :: model.event_log, new_seed1))
 
                             Action.EnemyTaunt ->
                                 let
                                     sanity_dmg = (Weapon.getTauntDamage enemy) + 2
                                     p = Player.adjustSanity (sanity_dmg * -1) player
                                 in
-                                    (p, model.distance_from_enemy, ("ENEMY " ++ (String.fromInt enemy.id) ++ " taunts the player for " ++ (String.fromInt sanity_dmg) ++ " sanity damage") :: model.event_log)
+                                    (p, model.distance_from_enemy, (("ENEMY " ++ (String.fromInt enemy.id) ++ " taunts the player for " ++ (String.fromInt sanity_dmg) ++ " sanity damage") :: model.event_log, new_seed1))
 
                 in
-                ( { model | random_seed = new_seed, player = Just new_player, distance_from_enemy = new_distance, event_log = new_log }
+                ( { model | random_seed = newest_seed, player = Just new_player, distance_from_enemy = new_distance, event_log = new_log }
                 , Types.performMessage <| Types.NextTurn
                 )
         Types.ShowHelp ->

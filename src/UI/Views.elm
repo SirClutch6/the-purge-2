@@ -124,11 +124,13 @@ viewPointBuy model =
                         [ HSA.css
                             [ TW.absolute
                             , TW.top_2over3
+                            , TW.space_x_2
                             ]
                         ]
-                        [
-                            Btn.button finish_msg (Just "Finish") --Proceed/continue to game
-                                |> Btn.toHtml
+                        [ Btn.button Types.ReturnToClassChoice (Just "Back")
+                            |> Btn.toHtml
+                        , Btn.button finish_msg (Just "Start") --Proceed/continue to game
+                            |> Btn.toHtml
                         ]
                     ]
                 ]
@@ -580,6 +582,15 @@ adjustAttributeDiv player attr points_remaining floor =
 
 eventLogDiv : String -> HS.Html Types.FrontendMsg
 eventLogDiv string =
+    HS.div
+        [ HSA.css
+            [ 
+            ]
+        ]
+        [ HS.text string
+        ]
+helpDiv : String -> HS.Html Types.FrontendMsg
+helpDiv string =
     HS.div
         [ HSA.css
             [ 

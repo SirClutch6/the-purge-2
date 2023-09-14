@@ -30,6 +30,7 @@ type alias Model =
     , points_to_spend : Int
     , room_entry_type : Levels.RoomEntryType
     , current_room : Int
+    , current_room_enemy_num : Int
     , round_turn_list : List Inv.CharacterWithInitiative
     , show_player_action_options : Bool
     , player_stealthed : (Bool, Int)
@@ -82,6 +83,7 @@ defineModel define_model =
     , points_to_spend = startingPoints
     , room_entry_type = Levels.Normal
     , current_room = 0
+    , current_room_enemy_num = 0
     , round_turn_list = []
     , show_player_action_options = False
     , player_stealthed = (False, 0)

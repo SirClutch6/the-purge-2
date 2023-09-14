@@ -271,8 +271,8 @@ getEnemyActions enemy distance =
         E.Captain ->
             (enemyCaptainActionOptions distance, W.MachineGun) --TODO Get Random Weapon
 
-afterRoomEffect : AfterRoom -> List E.Enemy -> Random.Seed -> P.Player -> (P.Player, Random.Seed)
-afterRoomEffect effect enemy_list seed player =
+afterRoomEffect : AfterRoom -> Int -> Random.Seed -> P.Player -> (P.Player, Random.Seed)
+afterRoomEffect effect num_enemies seed player =
     case effect of
         Rest ->
             (P.adjustHealth 5 player |> P.adjustSanity 5, seed)
@@ -282,7 +282,7 @@ afterRoomEffect effect enemy_list seed player =
                 (coins, new_seed) =
                     -- List.length enemy_list * 2 --TODO random number of coins
                     -- List.foldl getRandomCoins ([], seed) enemy_list 
-                    Random.step (RNG.randomListGen (List.length enemy_list) RNG.oneToFive) seed
+                    Random.step (RNG.randomListGen num_enemies RNG.oneToFive) seed
                     
                 
                 new_coins = List.sum coins

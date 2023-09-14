@@ -33,6 +33,7 @@ type FrontendMsg
     | ChoseSpy
     | ChoseWarrior
     | ChoseTank
+    | ReturnToClassChoice
     | AdjustAttr Player.Attribute Int
     | CalculateHP
     | ConfirmPointsBuyInitial

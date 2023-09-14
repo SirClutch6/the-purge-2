@@ -12,6 +12,8 @@ import Frontend.Model as FM
 import Frontend.Update as FU
 import Frontend.UpdateFromBackend as FUB
 
+import Types.Help as Help
+
 import UI.Views as UI
 
 import UI.Components.Buttons as Btn
@@ -96,6 +98,8 @@ init url key =
 view : FM.Model -> Browser.Document Types.FrontendMsg
 view model =
     let
+        help = 
+            List.map UI.helpDiv Help.helpInfo
         help_menu =
             if model.show_help_menu then
                 HS.div
@@ -107,7 +111,20 @@ view model =
                     , TW.right_0
                     ]
                 ]
-                [ HS.text "HELP" -- TODO add help info here
+                [ HS.div
+                    [ HSA.css
+                        [ TW.underline
+                        ]
+                    ]
+                    [ HS.text "HELP" ]
+                , HS.div
+                    [ HSA.css
+                        [ TW.left_0
+                        -- , TW.flex
+                        -- , TW.flex_col
+                        ]
+                    ]
+                    help
                 ]
             else
                 HS.text ""

@@ -4,12 +4,14 @@ import Random
 
 -- import Types
 
--- type Msg = NewNumber Int
+oneToCustom : Int -> Random.Generator Int
+oneToCustom n =
+    Random.int 1 n
 
 oneToHundred : Random.Generator Int
 oneToHundred =
     Random.int 1 100
-    
+
 oneToTwenty : Random.Generator Int
 oneToTwenty =
     Random.int 1 20
