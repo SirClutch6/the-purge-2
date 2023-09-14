@@ -180,7 +180,8 @@ update msg model =
                 new_room = List.filter (\r -> r.num == new_room_num) model.current_level.rooms |> List.head |> Maybe.withDefault Level.defaultRoom
                 enemy_num = new_room.enemies |> List.length
             in
-            ( { model | player_status = Player.InRoom, current_room = new_room_num, event_log = new_log, distance_from_enemy = Action.Range, current_room_enemy_num = enemy_num }
+            ( { model | player_status = Player.InRoom, current_room = new_room_num, event_log = new_log
+                      , distance_from_enemy = Action.Range, current_room_enemy_num = enemy_num, selected_enemy_id = 1 }
             , Types.performMessage <| Types.StartRound
             )
         Types.StartRound ->

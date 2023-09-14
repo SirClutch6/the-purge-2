@@ -3,6 +3,7 @@ module UI.Views exposing (..)
 import Frontend.Model as FM
 import Types
 import UI.Components.Buttons as Btn
+import UI.Components.DropdownSelection as DDS
 
 import Tailwind.Theme as TW
 import Tailwind.Utilities as TW
@@ -16,7 +17,6 @@ import Types.Levels as Level
 import Types.Actions as Actions
 import Types.Enemy as Enemy
 import Types.Weapons as Weapon
-import Css exposing (move)
 
 viewGameNotStarted : FM.Model -> List (HS.Html Types.FrontendMsg)
 viewGameNotStarted model =
@@ -788,6 +788,8 @@ viewEnemyHelper : Level.Room -> List (HS.Html Types.FrontendMsg)
 viewEnemyHelper room =
     let
         enemies = room.enemies
+        enemy_ids = 
+            List.map (\enemy -> "Enemy " ++ String.fromInt enemy.id) enemies
     in
     [ HS.div
         [ HSA.css
@@ -802,6 +804,13 @@ viewEnemyHelper room =
             ]
         ]
         ( List.map (\enemy -> viewEachEnemyHelper enemy) enemies )
+    , HS.div
+        [ HSA.css
+            [ 
+            ]
+        ]
+        [ DDS.dropdownSelection enemy_ids
+        ]
     ]
     
 
