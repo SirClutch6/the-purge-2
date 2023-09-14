@@ -54,19 +54,25 @@ viewGameNotStarted model =
                         ]
                     ]
                     cInfo
-                , HS.div
+                , HS.a
                         [ HSA.css
-                            [
+                            [ 
                             ]
-                        -- , HSE.onClick
+                        , HSA.href "https://crazy-cockatoo.com/"
+                        , HSA.target "_blank"
                         ]
-                        [ HS.text <| "CCG"
+                        [ HS.text <| "Crazy Cockatoo Games"
                         ]
                 , HS.div
+                    []
+                    [ HS.text <| "-------------------------------"
+                    ]
+                , HS.a
                     [ HSA.css
                         [
                         ]
-                    -- , HSE.onClick
+                    , HSA.href "https://github.com/SirClutch6/the-purge-2"
+                    , HSA.target "_blank"
                     ]
                     [ HS.text <| "Source Code"
                     ]
