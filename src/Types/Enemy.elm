@@ -198,7 +198,7 @@ getConstConversionInt level denominator =
     in
     division
 
-adjustRush : Int -> Enemy -> Enemy
+adjustRush : Int -> Enemy -> Enemy --TODO rework this so anyone can have rush?
 adjustRush amount enemy =
     let
         new_rush = 

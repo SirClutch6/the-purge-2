@@ -157,9 +157,9 @@ update msg model =
             )
         Types.EnterRoom ->
             let
-                new_log = "PLAYER enters the room" :: model.event_log
+                new_log = "********PLAYER enters the room********" :: model.event_log
             in
-            ( { model | player_status = Player.InRoom, current_room = model.current_room + 1, event_log = new_log }
+            ( { model | player_status = Player.InRoom, current_room = model.current_room + 1, event_log = new_log, distance_from_enemy = Action.Range }
             , Types.performMessage <| Types.StartRound
             )
         Types.StartRound ->
@@ -172,7 +172,7 @@ update msg model =
                     case model.current_level.rooms |> List.filter (\r -> r.num == model.current_room) |> List.head of
                         Just r -> r.enemies |> List.filter (\e -> e.hp > 0)
                         Nothing -> []
-                new_log = "Round Start" :: model.event_log
+                new_log = "Round Start-------------------------" :: model.event_log
                 new_enemy_taunted =
                     if Tuple.second model.enemy_taunted > 0 then
                        (Tuple.first model.enemy_taunted, Tuple.second model.enemy_taunted - 1)
@@ -205,7 +205,52 @@ update msg model =
                 ( model
                 , Types.performMessage <| Types.FinishRoom
                 )
-            else
+            else if player.rush > 0 then --Player free action with rush
+                let
+                    new_new_log = "PLAYER has a free action" :: new_log
+                    (turn_order, new_seed) = Inv.rollInitiative player [] model.random_seed
+                    player_adjust_rush = player |> Player.adjustRush -1
+                in
+                ( { model | round_turn_list = turn_order, random_seed = new_seed, event_log = new_new_log, player = Just player_adjust_rush
+                          , enemy_taunted = new_enemy_taunted
+                          , player_stealthed = new_player_stealthed
+                          , furious_attack_cooldown = new_furious_attack_cooldown
+                          , self_heal_cooldown = new_self_heal_cooldown 
+                  }
+                , Types.performMessage <| Types.NextTurn
+                )
+            else if (List.any (\e -> e.rush > 0) enemies) then --Enemy free action with rush
+                let
+                    enemies_with_rush = List.filter (\e -> e.rush > 0) enemies
+                    new_new_log = 
+                        List.map (\e -> "ENEMY " ++ (String.fromInt e.id) ++ " has a free action") enemies_with_rush |> List.append new_log
+                    (turn_order, new_seed) = Inv.rollInitiative player enemies_with_rush model.random_seed
+                    adjusted_turn_order = 
+                        List.filter (\(t, _) -> 
+                                        case t of 
+                                            Inv.Player _ -> False
+                                            Inv.Enemy e -> e.rush > 0
+                                    ) turn_order
+                    new_enemies = List.map (\e -> e |> Enemy.adjustRush -1) enemies
+                    new_room = 
+                        case model.current_level.rooms |> List.filter (\r -> r.num == model.current_room) |> List.head of
+                            Just r -> { r | enemies = new_enemies }
+                            Nothing -> Level.defaultRoom
+                    all_rooms = 
+                        List.map (\r -> if r.num == model.current_room then new_room else r) model.current_level.rooms
+                    the_current_level = model.current_level
+                    new_current_level = 
+                        { the_current_level | rooms = all_rooms }
+                in
+                ( { model | round_turn_list = adjusted_turn_order, random_seed = new_seed, event_log = new_new_log, current_level = new_current_level
+                          , enemy_taunted = new_enemy_taunted
+                          , player_stealthed = new_player_stealthed
+                          , furious_attack_cooldown = new_furious_attack_cooldown
+                          , self_heal_cooldown = new_self_heal_cooldown 
+                  }
+                , Types.performMessage <| Types.NextTurn
+                )
+            else --Normal round
                 let
                     (turn_order, new_seed) = Inv.rollInitiative player enemies model.random_seed
                     new_turn_order = List.reverse turn_order
@@ -299,6 +344,9 @@ update msg model =
                         Just p -> p
                         Nothing -> Player.baseRogue |> Player.calculateHP --SHOULD NEVER HAPPEN
                 (updated_player, new_seed) = Action.afterRoomEffect Action.Rest room_enemies model.random_seed new_player
+                health_regained = updated_player.hp - new_player.hp
+                sanity_regained = updated_player.sanity - new_player.sanity
+                new_new_log = ("PLAYER has regained " ++ (String.fromInt health_regained) ++ " health and " ++ (String.fromInt sanity_regained) ++ " sanity") :: new_log
                 new_enemy_taunted =
                     if Tuple.second model.enemy_taunted > 0 then
                        (Tuple.first model.enemy_taunted, Tuple.second model.enemy_taunted - 1)
@@ -323,7 +371,7 @@ update msg model =
                     else
                         0
             in
-            ( { model | player = Just updated_player, random_seed = new_seed, event_log = new_log
+            ( { model | player = Just updated_player, random_seed = new_seed, event_log = new_new_log
                       , enemy_taunted = new_enemy_taunted
                       , player_stealthed = new_player_stealthed
                       , furious_attack_cooldown = new_furious_attack_cooldown
@@ -436,7 +484,7 @@ update msg model =
             in
             -- TODO implement cooldown and negative effect
             ( { model | show_player_action_options = False, event_log = new_log, furious_attack_cooldown = 4 }
-            , Types.performMessage <| Types.PlayerAttack model.distance_from_enemy 1
+            , Types.performMessage <| Types.PlayerAttack model.distance_from_enemy 2
             )
         Types.PlayerStealth ->
             let

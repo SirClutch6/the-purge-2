@@ -446,6 +446,72 @@ viewPlayerHelper model =
                     p
                 Nothing ->
                     Player.defaultPlayer
+        player_taunt_cooldown_view =
+            let
+                cooldown = Tuple.second model.enemy_taunted
+            in
+            if cooldown > 0 then
+                [ HS.div
+                    [ HSA.css
+                        [ TW.flex
+                        , TW.flex_row
+                        , TW.space_x_2
+                        ]
+                    ]
+                    [ HS.text <| "Player Taunt Cooldown: "
+                    , HS.text <| String.fromInt cooldown
+                    ]
+                ]
+            else
+                []
+        furious_attack_cooldown_view =
+            if model.furious_attack_cooldown > 0 then
+                [ HS.div
+                    [ HSA.css
+                        [ TW.flex
+                        , TW.flex_row
+                        , TW.space_x_2
+                        ]
+                    ]
+                    [ HS.text <| "Furious Attack Cooldown: "
+                    , HS.text <| String.fromInt model.furious_attack_cooldown
+                    ]
+                ]
+            else
+                []
+        player_stealth_cooldown_view =
+            let
+                cooldown = Tuple.second model.player_stealthed
+            in
+            if cooldown > 0 then
+                [ HS.div
+                    [ HSA.css
+                        [ TW.flex
+                        , TW.flex_row
+                        , TW.space_x_2
+                        ]
+                    ]
+                    [ HS.text <| "Player Stealth Cooldown: "
+                    , HS.text <| String.fromInt cooldown
+                    ]
+                ]
+            else
+                []
+        self_heal_cooldown_view =
+            if model.self_heal_cooldown > 0 then
+                [ HS.div
+                    [ HSA.css
+                        [ TW.flex
+                        , TW.flex_row
+                        , TW.space_x_2
+                        ]
+                    ]
+                    [ HS.text <| "Self Heal Cooldown: "
+                    , HS.text <| String.fromInt model.self_heal_cooldown
+                    ]
+                ]
+            else
+                []
         stats = 
             if model.point_buy_complete then
                 [ viewPlayerStatsHelper player "HP"
@@ -457,7 +523,7 @@ viewPlayerHelper model =
                 , viewPlayerStatsHelper player "Rush"
                 , viewPlayerStatsHelper player "Coins"
                 , viewPlayerStatsHelper player "Turn Initiative"
-                ]
+                ] ++ player_taunt_cooldown_view ++ furious_attack_cooldown_view ++ player_stealth_cooldown_view ++ self_heal_cooldown_view
             else
                 []
     in
