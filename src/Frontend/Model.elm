@@ -31,6 +31,10 @@ type alias Model =
     , current_room : Int
     , round_turn_list : List Inv.CharacterWithInitiative
     , show_player_action_options : Bool
+    , player_stealthed : (Bool, Int)
+    , enemy_taunted : (Bool, Int)
+    , furious_attack_cooldown : Int
+    , self_heal_cooldown : Int
     , distance_from_enemy : Actions.Distance
     , current_level : Levels.Level
     , show_help_menu : Bool
@@ -76,6 +80,10 @@ defineModel define_model =
     , current_room = 0
     , round_turn_list = []
     , show_player_action_options = False
+    , player_stealthed = (False, 0)
+    , enemy_taunted = (False, 0)
+    , furious_attack_cooldown = 0
+    , self_heal_cooldown = 0
     , distance_from_enemy = Actions.Range
     , current_level = Levels.level1
     , show_help_menu = False

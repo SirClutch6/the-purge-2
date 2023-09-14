@@ -173,6 +173,29 @@ update msg model =
                         Just r -> r.enemies |> List.filter (\e -> e.hp > 0)
                         Nothing -> []
                 new_log = "Round Start" :: model.event_log
+                new_enemy_taunted =
+                    if Tuple.second model.enemy_taunted > 0 then
+                       (Tuple.first model.enemy_taunted, Tuple.second model.enemy_taunted - 1)
+                    else
+                        (False, 0)
+
+                new_player_stealthed =
+                    if Tuple.second model.player_stealthed > 0 then
+                        (Tuple.first model.player_stealthed, Tuple.second model.player_stealthed - 1)
+                    else
+                        (False, 0)
+                
+                new_furious_attack_cooldown =
+                    if model.furious_attack_cooldown > 0 then
+                        model.furious_attack_cooldown - 1
+                    else
+                        0
+                
+                new_self_heal_cooldown =
+                    if model.self_heal_cooldown > 0 then
+                        model.self_heal_cooldown - 1
+                    else
+                        0
             in
             if player.hp == 0 then
                 ( model
@@ -187,7 +210,12 @@ update msg model =
                     (turn_order, new_seed) = Inv.rollInitiative player enemies model.random_seed
                     new_turn_order = List.reverse turn_order
                 in
-                ( { model | round_turn_list = new_turn_order, random_seed = new_seed, event_log = new_log }
+                ( { model | round_turn_list = new_turn_order, random_seed = new_seed, event_log = new_log
+                          , enemy_taunted = new_enemy_taunted
+                          , player_stealthed = new_player_stealthed
+                          , furious_attack_cooldown = new_furious_attack_cooldown
+                          , self_heal_cooldown = new_self_heal_cooldown 
+                  }
                 , Types.performMessage <| Types.NextTurn
                 )
         Types.NextTurn ->
@@ -271,8 +299,36 @@ update msg model =
                         Just p -> p
                         Nothing -> Player.baseRogue |> Player.calculateHP --SHOULD NEVER HAPPEN
                 (updated_player, new_seed) = Action.afterRoomEffect Action.Rest room_enemies model.random_seed new_player
+                new_enemy_taunted =
+                    if Tuple.second model.enemy_taunted > 0 then
+                       (Tuple.first model.enemy_taunted, Tuple.second model.enemy_taunted - 1)
+                    else
+                        (False, 0)
+
+                new_player_stealthed =
+                    if Tuple.second model.player_stealthed > 0 then
+                        (Tuple.first model.player_stealthed, Tuple.second model.player_stealthed - 1)
+                    else
+                        (False, 0)
+                
+                new_furious_attack_cooldown =
+                    if model.furious_attack_cooldown > 0 then
+                        model.furious_attack_cooldown - 1
+                    else
+                        0
+                
+                new_self_heal_cooldown =
+                    if model.self_heal_cooldown > 0 then
+                        model.self_heal_cooldown - 1
+                    else
+                        0
             in
-            ( { model | player = Just updated_player, random_seed = new_seed, event_log = new_log }
+            ( { model | player = Just updated_player, random_seed = new_seed, event_log = new_log
+                      , enemy_taunted = new_enemy_taunted
+                      , player_stealthed = new_player_stealthed
+                      , furious_attack_cooldown = new_furious_attack_cooldown
+                      , self_heal_cooldown = new_self_heal_cooldown
+              }
             , Types.performMessage <| Types.EnterRoom
             )
         Types.BetweenRoomLoot room ->
@@ -371,7 +427,7 @@ update msg model =
                 new_log = "PLAYER taunts the enemy" :: model.event_log
             in
             -- TODO Taunt here
-            ( { model | show_player_action_options = False, event_log = new_log }
+            ( { model | show_player_action_options = False, event_log = new_log, enemy_taunted = (True, 4) }
             , Types.performMessage <| Types.NextTurn
             )
         Types.PlayerFuriousAttack ->
@@ -379,7 +435,7 @@ update msg model =
                 new_log = "PLAYER performs a furious attack" :: model.event_log
             in
             -- TODO implement cooldown and negative effect
-            ( { model | show_player_action_options = False, event_log = new_log }
+            ( { model | show_player_action_options = False, event_log = new_log, furious_attack_cooldown = 4 }
             , Types.performMessage <| Types.PlayerAttack model.distance_from_enemy 1
             )
         Types.PlayerStealth ->
@@ -387,7 +443,7 @@ update msg model =
                 new_log = "PLAYER enters STEALTH" :: model.event_log
             in
             -- TODO Stealth here
-            ( { model | show_player_action_options = False, event_log = new_log }
+            ( { model | show_player_action_options = False, event_log = new_log, player_stealthed = (True, 4) }
             , Types.performMessage <| Types.NextTurn
             )
         Types.PlayerHeal ->
@@ -405,7 +461,7 @@ update msg model =
                         player |> Player.adjustHealth heal_amount
             in
             -- TODO cooldowns
-            ( { model | show_player_action_options = False, event_log = new_log }
+            ( { model | show_player_action_options = False, event_log = new_log, self_heal_cooldown = 4 }
             , Types.performMessage <| Types.NextTurn
             )
         
@@ -428,22 +484,54 @@ update msg model =
                 let
                     (possible_actions, weapon) = Action.getEnemyActions enemy model.distance_from_enemy
                     (rand_num, new_seed) = Random.step RNG.zeroToNine model.random_seed
+                    (sanity1_roll, sanity2_roll, new_seed1) = 
+                        let
+                            (roll1, seed1) = Random.step RNG.oneToHundred new_seed
+                            (roll2, seed2) = Random.step RNG.oneToHundred seed1
+                        in
+                        case (roll1 < player.sanity, roll2 < player.sanity) of
+                            (True, True) -> (True, True, seed2)
+                            (True, False) -> (True, False, seed2)
+                            (False, True) -> (False, True, seed2)
+                            (False, False) -> (False, False, seed2)
                     action = Array.fromList possible_actions |> Array.get rand_num |> Maybe.withDefault Action.EnemyTaunt
                     (new_player, new_distance, new_log) =
                         case action of
                             Action.EnemyRangedAttack ->
                                 let
-                                    dmg = Weapon.getWeaponDamage (Weapon.Enemy enemy) weapon Weapon.Ranged
-                                    p = Player.adjustHealth (dmg * -1) player
+                                    dmg = toFloat (Weapon.getWeaponDamage (Weapon.Enemy enemy) weapon Weapon.Ranged)
+                                    new_dmg =
+                                        if Tuple.first model.enemy_taunted && sanity1_roll then
+                                            dmg / 2
+                                        else
+                                            dmg
+                                    new_new_dmg =
+                                        if Tuple.first model.player_stealthed && sanity2_roll then
+                                            new_dmg / 2
+                                        else
+                                            new_dmg
+                                    rounded_dmg = round new_new_dmg
+                                    p = Player.adjustHealth (rounded_dmg * -1) player
                                 in
-                                    (p, model.distance_from_enemy, ("ENEMY " ++ (String.fromInt enemy.id) ++ " attacks with " ++ (Weapon.weaponToString weapon) ++ " for " ++ (String.fromInt dmg) ++ " damage") :: model.event_log)
+                                    (p, model.distance_from_enemy, ("ENEMY " ++ (String.fromInt enemy.id) ++ " attacks with " ++ (Weapon.weaponToString weapon) ++ " for " ++ (String.fromInt rounded_dmg) ++ " damage") :: model.event_log)
 
                             Action.EnemyMeleeAttack ->
                                 let
-                                    dmg = Weapon.getWeaponDamage (Weapon.Enemy enemy) weapon Weapon.Melee
-                                    p = Player.adjustHealth (dmg * -1) player
+                                    dmg = toFloat (Weapon.getWeaponDamage (Weapon.Enemy enemy) weapon Weapon.Melee)
+                                    new_dmg =
+                                        if Tuple.first model.enemy_taunted && sanity1_roll then
+                                            dmg / 2
+                                        else
+                                            dmg
+                                    new_new_dmg =
+                                        if Tuple.first model.player_stealthed && sanity2_roll then
+                                            new_dmg / 2
+                                        else
+                                            new_dmg
+                                    rounded_dmg = round new_new_dmg
+                                    p = Player.adjustHealth (rounded_dmg * -1) player
                                 in
-                                    (p, model.distance_from_enemy, ("ENEMY " ++ (String.fromInt enemy.id) ++ " attacks with " ++ (Weapon.weaponToString weapon) ++ " for " ++ (String.fromInt dmg) ++ " damage") :: model.event_log)
+                                    (p, model.distance_from_enemy, ("ENEMY " ++ (String.fromInt enemy.id) ++ " attacks with " ++ (Weapon.weaponToString weapon) ++ " for " ++ (String.fromInt rounded_dmg) ++ " damage") :: model.event_log)
 
                             Action.EnemyMove direction->
                                 if direction == Action.Toward then

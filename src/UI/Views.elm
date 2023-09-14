@@ -139,6 +139,10 @@ viewInGame model =
             List.filter (\room -> room.num == model.current_room) level.rooms
                 |> List.head
                 |> Maybe.withDefault (Level.defaultRoom) -- Should not be able to get here
+        hide_taunt = if Tuple.second model.enemy_taunted > 0 then True else False
+        hide_furious_attack = if model.furious_attack_cooldown > 0 then True else False
+        hide_stealth = if Tuple.second model.player_stealthed > 0 then True else False
+        hide_self_heal = if model.self_heal_cooldown > 0 then True else False
     in
     case model.player_status of
         Player.StartedEntry ->
@@ -146,7 +150,7 @@ viewInGame model =
             viewStartedEntry (Maybe.withDefault Player.defaultPlayer model.player)
         Player.InRoom ->
             -- Show room scene
-            viewInRoom (Maybe.withDefault Player.defaultPlayer model.player) current_room model.distance_from_enemy model.room_entry_type model.show_player_action_options
+            viewInRoom (Maybe.withDefault Player.defaultPlayer model.player) current_room model.distance_from_enemy model.room_entry_type model.show_player_action_options hide_taunt hide_furious_attack hide_stealth hide_self_heal
         Player.BetweenRooms ->
             -- Show between room scene
             viewBetweenRooms (Maybe.withDefault Player.defaultPlayer model.player) current_room
@@ -197,8 +201,8 @@ viewStartedEntry _ =
             ]
     ]
 
-viewInRoom : Player.Player -> Level.Room -> Actions.Distance -> Level.RoomEntryType -> Bool -> List (HS.Html Types.FrontendMsg)
-viewInRoom player room distance msg show_btns =
+viewInRoom : Player.Player -> Level.Room -> Actions.Distance -> Level.RoomEntryType -> Bool -> Bool -> Bool -> Bool -> Bool -> List (HS.Html Types.FrontendMsg)
+viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hide_stealth hide_self_heal =
     let
         occ = 
             if List.length room.enemies > 1 then
@@ -230,18 +234,46 @@ viewInRoom player room distance msg show_btns =
                 , Btn.button (Types.PlayerMove Actions.Away) (Just "Push Guard Away")
                     |> Btn.toHtml
                 )
+        taunt_button =
+            if hide_taunt then
+                Btn.button (Types.PlayerTaunt) (Just "Taunt")
+                    |> Btn.withDisabled
+                    |> Btn.toHtml
+            else
+                Btn.button (Types.PlayerTaunt) (Just "Taunt")
+                    |> Btn.toHtml 
+        furious_attack_button =
+            if hide_furious_attack then
+                Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack")
+                    |> Btn.withDisabled
+                    |> Btn.toHtml
+            else
+                Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack")
+                    |> Btn.toHtml
+        stealth_button =
+            if hide_stealth then
+                Btn.button (Types.PlayerStealth) (Just "Enter Stealth")
+                    |> Btn.withDisabled
+                    |> Btn.toHtml
+            else
+                Btn.button (Types.PlayerStealth) (Just "Enter Stealth")
+                    |> Btn.toHtml
+        self_heal_button =
+            if hide_self_heal then
+                Btn.button (Types.PlayerHeal) (Just "Heal")
+                    |> Btn.withDisabled
+                    |> Btn.toHtml
+            else
+                Btn.button (Types.PlayerHeal) (Just "Heal")
+                    |> Btn.toHtml
         action_buttons = 
             if show_btns then
                 [ move_btn
                 , attack_btn
-                , Btn.button (Types.PlayerTaunt) (Just "Taunt")
-                    |> Btn.toHtml
-                , Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack")
-                    |> Btn.toHtml
-                , Btn.button (Types.PlayerStealth) (Just "Enter Stealth")
-                    |> Btn.toHtml
-                , Btn.button (Types.PlayerHeal) (Just "Heal")
-                    |> Btn.toHtml
+                , taunt_button
+                , furious_attack_button
+                , stealth_button
+                , self_heal_button
                 ]
             else
                 []
