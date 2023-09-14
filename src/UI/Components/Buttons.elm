@@ -15,6 +15,8 @@ import UI.Components.Helpers as Help
 
 import Css
 
+import Types as Types
+
 
 type Icon
     = Checkmark
@@ -104,21 +106,41 @@ toHtml (Button options msg m_label) =
         -- border_style = TW.border_solid
         hover = Css.hover [(Css.cursor Css.pointer)]
         attributes =
-            HSA.css
-                [ width
-                , TW.h_12
-                , TW.items_center
-                , TW.justify_center
-                , TW.rounded_md
-                , alignment
-                , font_size
-                , font_weight
-                , hover
-                , TW.border_solid
-                , TW.border_2
-                , TW.border_color options.border_color
-                , TW.bg_color options.color
-                , TW.text_color options.text_color
+            if options.disabled then
+                [HSA.css
+                    [ width
+                    , TW.h_12
+                    , TW.items_center
+                    , TW.justify_center
+                    , TW.rounded_md
+                    , alignment
+                    , font_size
+                    , font_weight
+                    , TW.border_solid
+                    , TW.border_2
+                    , TW.border_color options.border_color
+                    , TW.bg_color TW.gray_100
+                    , TW.text_color TW.gray_500
+                    ]
+                ]
+            else
+                [HSA.css
+                    [ width
+                    , TW.h_12
+                    , TW.items_center
+                    , TW.justify_center
+                    , TW.rounded_md
+                    , alignment
+                    , font_size
+                    , font_weight
+                    , hover
+                    , TW.border_solid
+                    , TW.border_2
+                    , TW.border_color options.border_color
+                    , TW.bg_color options.color
+                    , TW.text_color options.text_color
+                    ]
+                , HSE.onClick msg
                 ]
 
         label =
@@ -129,19 +151,10 @@ toHtml (Button options msg m_label) =
                     "Missing Label"
                     -- Icon here
     in
-    if options.disabled == False then
-        HS.button
-            [ attributes
-            , HSE.onClick msg
-            ]
-            [ HS.text label
-            ]
-    else
-        HS.div
-            [
-            ]
-            [
-            ]
+    HS.button
+        attributes
+        [ HS.text label
+        ]
 
 
 -- ANCHOR Adjustments

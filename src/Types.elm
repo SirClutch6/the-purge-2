@@ -35,7 +35,8 @@ type FrontendMsg
     | ChoseTank
     | AdjustAttr Player.Attribute Int
     | CalculateHP
-    | ConfirmPointsBuy
+    | ConfirmPointsBuyInitial
+    | ConfirmPointsBuyBetweenLevel
     | EnterBuilding
     | SearchForAnotherWayIn
     | EnterRoom
@@ -46,6 +47,11 @@ type FrontendMsg
     | BetweenRoomRest Level.Room
     | BetweenRoomLoot Level.Room
     | BetweenRoomRush Level.Room
+    | PurchaseWater
+    | PurchaseJuice
+    | PurchaseHotChocolate
+    | PurchaseProteinShake
+    | BetweenLevelPurchaseFinished
     -- Player Actions
     | PlayerAttack Action.Distance Int
     | PlayerMove Action.Direction
@@ -59,6 +65,7 @@ type FrontendMsg
     | ResetGame
     | JumpToFinish
     | GetCleanTime Time.Posix
+    | TestChangeDistance
 
 
 type ToBackend

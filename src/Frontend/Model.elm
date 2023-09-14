@@ -21,6 +21,7 @@ type alias Model =
     , random_seed : Random.Seed
     , player : Maybe Player.Player
     , current_weapon : Weapon.Weapon
+    , base_weapon : Weapon.Weapon
     , temp_player : Maybe Player.Player
     , player_status : Player.Status 
     , game_started : Bool
@@ -32,7 +33,9 @@ type alias Model =
     , round_turn_list : List Inv.CharacterWithInitiative
     , show_player_action_options : Bool
     , player_stealthed : (Bool, Int)
+    , player_stealth_cooldown : Int
     , enemy_taunted : (Bool, Int)
+    , player_taunt_cooldown : Int
     , furious_attack_cooldown : Int
     , self_heal_cooldown : Int
     , distance_from_enemy : Actions.Distance
@@ -70,6 +73,7 @@ defineModel define_model =
     , random_seed = Random.initialSeed 0
     , player = Nothing
     , current_weapon = Weapon.Other "Nothing"
+    , base_weapon = Weapon.Other "Nothing"
     , temp_player = Nothing
     , player_status = Player.NotStarted
     , game_started = False
@@ -81,7 +85,9 @@ defineModel define_model =
     , round_turn_list = []
     , show_player_action_options = False
     , player_stealthed = (False, 0)
+    , player_stealth_cooldown = 0
     , enemy_taunted = (False, 0)
+    , player_taunt_cooldown = 0
     , furious_attack_cooldown = 0
     , self_heal_cooldown = 0
     , distance_from_enemy = Actions.Range

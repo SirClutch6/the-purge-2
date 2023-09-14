@@ -15,6 +15,7 @@ import Types.Player as Player
 import Types.Levels as Level
 import Types.Actions as Actions
 import Types.Enemy as Enemy
+import Types.Weapons as Weapon
 import Css exposing (move)
 
 viewGameNotStarted : FM.Model -> List (HS.Html Types.FrontendMsg)
@@ -82,6 +83,11 @@ viewPointBuy : FM.Model -> List (HS.Html Types.FrontendMsg)
 viewPointBuy model =
     let
         temp = (Maybe.withDefault Player.defaultPlayer model.temp_player)
+        finish_msg = 
+            if model.player_status == Player.BetweenLevels then
+                Types.ConfirmPointsBuyBetweenLevel
+            else
+                Types.ConfirmPointsBuyInitial
     in
     case model.player of
             Just player ->
@@ -121,7 +127,7 @@ viewPointBuy model =
                             ]
                         ]
                         [
-                            Btn.button Types.ConfirmPointsBuy (Just "Finish") --Proceed/continue to game
+                            Btn.button finish_msg (Just "Finish") --Proceed/continue to game
                                 |> Btn.toHtml
                         ]
                     ]
@@ -139,9 +145,9 @@ viewInGame model =
             List.filter (\room -> room.num == model.current_room) level.rooms
                 |> List.head
                 |> Maybe.withDefault (Level.defaultRoom) -- Should not be able to get here
-        hide_taunt = if Tuple.second model.enemy_taunted > 0 then True else False
+        hide_taunt = if model.player_taunt_cooldown > 0 then True else False
         hide_furious_attack = if model.furious_attack_cooldown > 0 then True else False
-        hide_stealth = if Tuple.second model.player_stealthed > 0 then True else False
+        hide_stealth = if model.player_stealth_cooldown > 0 then True else False
         hide_self_heal = if model.self_heal_cooldown > 0 then True else False
     in
     case model.player_status of
@@ -150,13 +156,13 @@ viewInGame model =
             viewStartedEntry (Maybe.withDefault Player.defaultPlayer model.player)
         Player.InRoom ->
             -- Show room scene
-            viewInRoom (Maybe.withDefault Player.defaultPlayer model.player) current_room model.distance_from_enemy model.room_entry_type model.show_player_action_options hide_taunt hide_furious_attack hide_stealth hide_self_heal
+            viewInRoom (Maybe.withDefault Player.defaultPlayer model.player) current_room model.distance_from_enemy model.room_entry_type model.show_player_action_options hide_taunt hide_furious_attack hide_stealth hide_self_heal model.current_weapon
         Player.BetweenRooms ->
             -- Show between room scene
             viewBetweenRooms (Maybe.withDefault Player.defaultPlayer model.player) current_room
         Player.BetweenLevels ->
             -- Show between level scene
-            viewBetweenLevels (Maybe.withDefault Player.defaultPlayer model.player) level
+            viewBetweenLevels (Maybe.withDefault Player.defaultPlayer model.player) level model
         Player.Finished ->
             -- Show finished scene
             viewFinished (Maybe.withDefault Player.defaultPlayer model.player)
@@ -201,8 +207,8 @@ viewStartedEntry _ =
             ]
     ]
 
-viewInRoom : Player.Player -> Level.Room -> Actions.Distance -> Level.RoomEntryType -> Bool -> Bool -> Bool -> Bool -> Bool -> List (HS.Html Types.FrontendMsg)
-viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hide_stealth hide_self_heal =
+viewInRoom : Player.Player -> Level.Room -> Actions.Distance -> Level.RoomEntryType -> Bool -> Bool -> Bool -> Bool -> Bool -> Weapon.Weapon -> List (HS.Html Types.FrontendMsg)
+viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hide_stealth hide_self_heal weapon =
     let
         occ = 
             if List.length room.enemies > 1 then
@@ -221,18 +227,50 @@ viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hid
                     "You quickly enter the room, catching its " ++ occ ++ " off guard."
                 Level.Normal ->
                     "You proceed into the room."
-        (attack_btn, move_btn) = 
-            if distance == Actions.Range then
-                ( Btn.button (Types.PlayerAttack Actions.Range 1) (Just "Ranged Attack")
+        (attack_btn, move_btn, furious_attack_button) = 
+            if (distance == Actions.Range && weapon == Weapon.None) then
+                ( Btn.button (Types.PlayerAttack Actions.Range 1) (Just "Ranged Attack*")
+                    |> Btn.withDisabled
                     |> Btn.toHtml
-                , Btn.button (Types.PlayerMove Actions.Toward) (Just "Approach Guard")
+                , Btn.button (Types.PlayerMove Actions.Toward) (Just "Approach Enemy")
+                    |> Btn.toHtml
+                , Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack*")
+                    |> Btn.withDisabled
                     |> Btn.toHtml
                 )
-            else 
+            else if distance == Actions.Range then
+                let
+                    furious_btn = 
+                        if hide_furious_attack then
+                            Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack*")
+                                |> Btn.withDisabled
+                                |> Btn.toHtml
+                        else
+                            Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack*")
+                                |> Btn.toHtml
+                in
+                ( Btn.button (Types.PlayerAttack Actions.Range 1) (Just "Ranged Attack")
+                    |> Btn.toHtml
+                , Btn.button (Types.PlayerMove Actions.Toward) (Just "Approach Enemy")
+                    |> Btn.toHtml
+                , furious_btn
+                )
+            else
+                let
+                    furious_btn = 
+                        if hide_furious_attack then
+                            Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack")
+                                |> Btn.withDisabled
+                                |> Btn.toHtml
+                        else
+                            Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack")
+                                |> Btn.toHtml
+                in
                 ( Btn.button (Types.PlayerAttack Actions.Melee 1) (Just "Melee Attack")
                     |> Btn.toHtml
-                , Btn.button (Types.PlayerMove Actions.Away) (Just "Push Guard Away")
+                , Btn.button (Types.PlayerMove Actions.Away) (Just "Push Enemy Away")
                     |> Btn.toHtml
+                , furious_btn
                 )
         taunt_button =
             if hide_taunt then
@@ -241,15 +279,7 @@ viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hid
                     |> Btn.toHtml
             else
                 Btn.button (Types.PlayerTaunt) (Just "Taunt")
-                    |> Btn.toHtml 
-        furious_attack_button =
-            if hide_furious_attack then
-                Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack")
-                    |> Btn.withDisabled
-                    |> Btn.toHtml
-            else
-                Btn.button (Types.PlayerFuriousAttack) (Just "Furious Attack")
-                    |> Btn.toHtml
+                    |> Btn.toHtml             
         stealth_button =
             if hide_stealth then
                 Btn.button (Types.PlayerStealth) (Just "Enter Stealth")
@@ -269,11 +299,11 @@ viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hid
         action_buttons = 
             if show_btns then
                 [ move_btn
-                , attack_btn
                 , taunt_button
-                , furious_attack_button
                 , stealth_button
                 , self_heal_button
+                , attack_btn
+                , furious_attack_button
                 ]
             else
                 []
@@ -294,7 +324,9 @@ viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hid
                 ]
             ]
             action_buttons
-        -- , Btn.button Types.JumpToFinish (Just "Skip to Finish")
+        , Btn.button Types.JumpToFinish (Just "Skip to Finish")
+            |> Btn.toHtml
+        -- , Btn.button Types.TestChangeDistance (Just "Change Distance")
         --     |> Btn.toHtml
         ] ++ viewEnemyHelper room)
     ]
@@ -320,7 +352,7 @@ viewBetweenRooms player room =
         ]
         , HS.div
             [ HSA.css
-                [ TW.space_x_10
+                [ TW.space_x_5
                 ]
             ]
             [ Btn.button (Types.BetweenRoomRest room) (Just "Rest")
@@ -335,9 +367,108 @@ viewBetweenRooms player room =
     
     
 
-viewBetweenLevels : Player.Player -> Level.Level -> List (HS.Html Types.FrontendMsg)
-viewBetweenLevels player level =
-    [ HS.text "Between levels" ] --TODO add this functionality
+viewBetweenLevels : Player.Player -> Level.Level -> FM.Model -> List (HS.Html Types.FrontendMsg)
+viewBetweenLevels player level model =
+    if model.point_buy_complete then
+        let
+            water_button = 
+                Btn.button (Types.PurchaseWater) (Just "Water (2 coins)")
+                    |> Btn.toHtml
+            water_button_disabled = 
+                Btn.button (Types.PurchaseWater) (Just "Water (2 coins)")
+                    |> Btn.withDisabled
+                    |> Btn.toHtml
+            juice_button =
+                Btn.button (Types.PurchaseJuice) (Just "Juice (5 coins)")
+                    |> Btn.toHtml
+            juice_button_disabled =
+                Btn.button (Types.PurchaseJuice) (Just "Juice (5 coins)")
+                    |> Btn.withDisabled
+                    |> Btn.toHtml
+            hot_chocolate_button =
+                Btn.button (Types.PurchaseHotChocolate) (Just "Hot Chocolate (10 coins)")
+                    |> Btn.toHtml
+            hot_chocolate_button_disabled =
+                Btn.button (Types.PurchaseHotChocolate) (Just "Hot Chocolate (10 coins)")
+                    |> Btn.withDisabled
+                    |> Btn.toHtml
+            protein_shake_button =
+                Btn.button (Types.PurchaseProteinShake) (Just "Protein Shake (20 coins)")
+                    |> Btn.toHtml
+            protein_shake_button_disabled =
+                Btn.button (Types.PurchaseProteinShake) (Just "Protein Shake (20 coins)")
+                    |> Btn.withDisabled
+                    |> Btn.toHtml
+            ((water_btn, juice_btn, hot_chocolate_btn), protein_shake_btn) =
+                if player.coins >= 20 then
+                    ( (water_button
+                    , juice_button
+                    , hot_chocolate_button)
+                    , protein_shake_button
+                    )
+                else if player.coins >= 10 then
+                    ( (water_button
+                    , juice_button
+                    , hot_chocolate_button)
+                    , protein_shake_button_disabled
+                    )
+                else if player.coins >= 5 then
+                    ( (water_button
+                    , juice_button
+                    , hot_chocolate_button_disabled)
+                    , protein_shake_button_disabled
+                    )
+                else if player.coins >= 2 then
+                    ( (water_button
+                    , juice_button_disabled
+                    , hot_chocolate_button_disabled)
+                    , protein_shake_button_disabled
+                    )
+                else
+                    ( (water_button_disabled
+                    , juice_button_disabled
+                    , hot_chocolate_button_disabled)
+                    , protein_shake_button_disabled
+                    )
+        in
+        [ HS.div
+            [ HSA.css
+                [ TW.flex
+                , TW.flex_col
+                , TW.items_center
+                ]
+            ]
+            [ HS.div
+            [ HSA.css
+                [ 
+                ]
+            ]
+            [ HS.text "What would you like to buy from the vending machine?"
+            ]
+            , HS.div
+                [ HSA.css
+                    [ TW.space_x_5
+                    ]
+                ]
+                [ water_btn
+                , juice_btn
+                , hot_chocolate_btn
+                , protein_shake_btn
+                ]
+            , HS.div
+                [ HSA.css
+                    [ TW.space_x_2
+                    , TW.absolute
+                    , TW.top_2over3
+                    ]
+                ]
+                [ Btn.button Types.BetweenLevelPurchaseFinished (Just "Finish")
+                    |> Btn.toHtml
+                ]
+            ]
+        ]
+    else 
+        viewPointBuy model
 
 viewFinished : Player.Player -> List (HS.Html Types.FrontendMsg)
 viewFinished _ =   
@@ -345,13 +476,33 @@ viewFinished _ =
         [ HSA.css
             [ TW.flex
             , TW.flex_col
+            , TW.items_center
+            , TW.absolute
+            , TW.top_7
             ]
         ]
-        [ HS.text "As The Captain falls to the ground, his final taunt floats to your ears.\n" 
-        , HS.text "\"Please, please don't do this...\"\n"
-        , HS.text "Finally, the last of the police have been eliminated. The people of the city are free; free from laws, restrictions, and limits.\n"
-        , HS.text "Let The Purge begin..."
-        , Btn.button Types.ResetGame (Just "Reset Game")
+        [ HS.text "The End"]
+    , HS.div
+        [ HSA.css
+            [ TW.flex
+            , TW.flex_col
+            , TW.absolute
+            , TW.top_1over3
+            ]
+        ]
+        [ textDivHelper "As The Captain falls to the ground, his final taunt floats to your ears.\n" 
+        , textDivHelper "\"Please, please don't do this...\"\n"
+        , textDivHelper "Finally, the last of the police have been eliminated. The people of the city are free; free from laws, restrictions, and limits.\n"
+        , textDivHelper "Let The Purge begin..."
+        ]
+    , HS.div
+        [ HSA.css
+            [ TW.space_x_2
+            , TW.absolute
+            , TW.top_2over3
+            ]
+        ]
+        [ Btn.button Types.ResetGame (Just "Reset Game")
             |> Btn.toHtml
         ]
     ]
@@ -512,10 +663,30 @@ viewPlayerHelper model =
                 ]
             else
                 []
+        dtnce = 
+            if model.player_status == Player.InRoom then
+                [ HS.div
+                    [ HSA.css
+                        [ TW.flex
+                        , TW.flex_row
+                        , TW.space_x_2
+                        ]
+                    ]
+                    [ HS.text <| "Current Distance: "
+                    , HS.text <| Actions.distanceToString model.distance_from_enemy
+                    ]
+                ]
+            else
+                []
+        san = 
+            if model.player_status == Player.Finished then
+                "INSANITY"
+            else
+                "Sanity"
         stats = 
             if model.point_buy_complete then
                 [ viewPlayerStatsHelper player "HP"
-                , viewPlayerStatsHelper player "Sanity"
+                , viewPlayerStatsHelper player san
                 , viewPlayerStatsHelper player "Dexterity"
                 , viewPlayerStatsHelper player "Strength"
                 , viewPlayerStatsHelper player "Charisma"
@@ -523,7 +694,11 @@ viewPlayerHelper model =
                 , viewPlayerStatsHelper player "Rush"
                 , viewPlayerStatsHelper player "Coins"
                 , viewPlayerStatsHelper player "Turn Initiative"
-                ] ++ player_taunt_cooldown_view ++ furious_attack_cooldown_view ++ player_stealth_cooldown_view ++ self_heal_cooldown_view
+                ] ++ player_taunt_cooldown_view 
+                  ++ furious_attack_cooldown_view 
+                  ++ player_stealth_cooldown_view 
+                  ++ self_heal_cooldown_view
+                  ++ dtnce
             else
                 []
     in
@@ -560,6 +735,16 @@ viewPlayerHelper model =
                 [ HS.text <| "Class: "
                 , HS.text <| Player.classToString player.class
                 ]
+             , HS.div
+                [ HSA.css
+                    [ TW.flex
+                    , TW.flex_row
+                    , TW.space_x_2
+                    ]
+                ]
+                [ HS.text <| "Weapon: "
+                , HS.text <| Weapon.weaponToString model.current_weapon
+                ]
             ] ++ stats)
         ]
     ]
@@ -572,6 +757,8 @@ viewPlayerStatsHelper player stat =
                 HS.text <| (String.fromInt <| Player.getStat stat player) ++ "/" ++ (String.fromInt <| Player.getStat "Max HP" player)
             else if stat == "Sanity" then
                 HS.text <| (String.fromInt <| Player.getStat stat player) ++ "%"
+            else if stat == "INSANITY" then
+                HS.text <| (String.fromInt <| Player.getStat "Sanity" player) ++ "%"
             else
                 HS.text <| String.fromInt <| Player.getStat stat player
     in

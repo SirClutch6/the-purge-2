@@ -39,7 +39,7 @@ update msg model =
                 new_player = Player.baseRogue |> Player.calculateHP
                 new_log = "PLAYER has chosen to be a ROGUE" :: model.event_log
             in
-            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Blade, event_log = new_log }
+            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Blade, base_weapon = Weapon.Blade, event_log = new_log }
             , Cmd.none
             )
         Types.ChoseSpy ->
@@ -47,7 +47,7 @@ update msg model =
                 new_player = Player.baseSpy |> Player.calculateHP
                 new_log = "PLAYER has chosen to be a SPY" :: model.event_log
             in
-            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Blade, event_log = new_log }
+            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Blade, base_weapon = Weapon.Blade, event_log = new_log }
             , Cmd.none
             )
         Types.ChoseWarrior ->
@@ -55,7 +55,7 @@ update msg model =
                 new_player = Player.baseWarrior |> Player.calculateHP
                 new_log = "PLAYER has chosen to be a WARRIOR" :: model.event_log
             in
-            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Spear, event_log = new_log }
+            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Spear, base_weapon = Weapon.Spear, event_log = new_log }
             , Cmd.none
             )
         Types.ChoseTank ->
@@ -63,7 +63,7 @@ update msg model =
                 new_player = Player.baseTank |> Player.calculateHP
                 new_log = "PLAYER has chosen to be a TANK" :: model.event_log
             in
-            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Club, event_log = new_log }
+            ( { model | player = Just new_player, temp_player = Just new_player, class_picked = True, current_weapon = Weapon.Club, base_weapon = Weapon.Club, event_log = new_log }
             , Cmd.none
             )
         Types.AdjustAttr attr amount->
@@ -97,7 +97,7 @@ update msg model =
             ( { model | player = Just new_player }
             , Cmd.none
             )
-        Types.ConfirmPointsBuy ->
+        Types.ConfirmPointsBuyInitial ->
             let
                 player = 
                     case model.player of
@@ -106,6 +106,17 @@ update msg model =
                 new_log = "PLAYER has finalized character attributes" :: model.event_log
             in
             ( { model | temp_player = Just player, point_buy_complete = True, player_status = Player.StartedEntry, event_log = new_log }
+            , Cmd.none
+            )
+        Types.ConfirmPointsBuyBetweenLevel ->
+            let
+                player = 
+                    case model.player of
+                        Just p -> p
+                        Nothing -> Player.baseRogue |> Player.calculateHP --SHOULD NEVER HAPPEN
+                new_log = "PLAYER has finished level up improvements" :: model.event_log
+            in
+            ( { model | temp_player = Just player, point_buy_complete = True, event_log = new_log }
             , Cmd.none
             )
         Types.EnterBuilding ->
@@ -143,13 +154,13 @@ update msg model =
                                 if attr == "Dex" then
                                     ((p |> Player.adjustRush 2), Level.DexSneak, "PLAYER succeeded a Dexterity Save" :: new_log)
                                 else if attr == "Chr" then
-                                    ((p |> Player.adjustRush 2), Level.ChrSneak, "Player has succeeded a Charisma save" :: "PLAYER failed a Dex Save" :: new_log)
+                                    ((p |> Player.adjustRush 2), Level.ChrSneak, "PLAYER succeeded a Charisma save" :: "PLAYER failed a Dex Save" :: new_log)
                                 else 
                                     (p, Level.Normal, new_log) --SHOULD NEVER HAPPEN
                             Nothing -> (Player.defaultPlayer |> Player.calculateHP, Level.Normal, new_log) --SHOULD NEVER HAPPEN
                     else
                         case model.player of
-                            Just p -> ((p |> Player.adjustHealth -5), Level.FailedSneak, "PLAYER failed both the Dexterity and Charisma saves" :: new_log)
+                            Just p -> ((p |> Player.adjustHealth -5), Level.FailedSneak, ("PLAYER loses 5 health") :: ("PLAYER failed both the Dexterity and Charisma saves" :: new_log))
                             Nothing -> (Player.defaultPlayer |> Player.calculateHP, Level.Normal, new_log) --SHOULD NEVER HAPPEN
             in
             ( { model | player = Just new_player, player_status = Player.InRoom, room_entry_type = entry_type, random_seed = new_random_seed, event_log = new_new_log }
@@ -178,12 +189,21 @@ update msg model =
                        (Tuple.first model.enemy_taunted, Tuple.second model.enemy_taunted - 1)
                     else
                         (False, 0)
-
+                new_player_taunt_cooldown =
+                    if model.player_taunt_cooldown > 0 then
+                        model.player_taunt_cooldown - 1
+                    else
+                        0
                 new_player_stealthed =
                     if Tuple.second model.player_stealthed > 0 then
                         (Tuple.first model.player_stealthed, Tuple.second model.player_stealthed - 1)
                     else
                         (False, 0)
+                new_player_stealth_cooldown =
+                    if model.player_stealth_cooldown > 0 then
+                        model.player_stealth_cooldown - 1
+                    else
+                        0
                 
                 new_furious_attack_cooldown =
                     if model.furious_attack_cooldown > 0 then
@@ -213,6 +233,8 @@ update msg model =
                 in
                 ( { model | round_turn_list = turn_order, random_seed = new_seed, event_log = new_new_log, player = Just player_adjust_rush
                           , enemy_taunted = new_enemy_taunted
+                          , player_taunt_cooldown = new_player_taunt_cooldown
+                          , player_stealth_cooldown = new_player_stealth_cooldown
                           , player_stealthed = new_player_stealthed
                           , furious_attack_cooldown = new_furious_attack_cooldown
                           , self_heal_cooldown = new_self_heal_cooldown 
@@ -244,6 +266,8 @@ update msg model =
                 in
                 ( { model | round_turn_list = adjusted_turn_order, random_seed = new_seed, event_log = new_new_log, current_level = new_current_level
                           , enemy_taunted = new_enemy_taunted
+                          , player_taunt_cooldown = new_player_taunt_cooldown
+                          , player_stealth_cooldown = new_player_stealth_cooldown
                           , player_stealthed = new_player_stealthed
                           , furious_attack_cooldown = new_furious_attack_cooldown
                           , self_heal_cooldown = new_self_heal_cooldown 
@@ -310,16 +334,31 @@ update msg model =
                         )
         Types.FinishRoom ->
             let
-                new_status =
+                (new_status, command) =
                     if (List.length model.current_level.rooms) == model.current_room then
-                        Player.BetweenLevels
+                        (Player.BetweenLevels, Types.performMessage <| Types.FinishLevel)
                     else
-                        Player.BetweenRooms
+                        (Player.BetweenRooms, Cmd.none)
+                player = 
+                    case model.player of
+                        Just p -> p
+                        Nothing -> Player.defaultPlayer --SHOULD NEVER HAPPEN
+                new_player = Player.adjustRush -100 player
 
-                new_log = "PLAYER has finished the room" :: model.event_log
+                new_log = "********PLAYER has finished the room********" :: model.event_log
+                (new_new_log, new_weapon) =
+                    if model.current_weapon == model.base_weapon then
+                        (new_log, model.current_weapon)
+                    else
+                        (("PLAYER has regained " ++ (Weapon.weaponToString model.base_weapon)) :: new_log
+                        , model.base_weapon
+                        )
             in
-            ( { model | player_status = new_status, event_log = new_log }
-            , Cmd.none
+            ( { model | player_status = new_status, event_log = new_new_log, current_weapon = new_weapon, player = Just new_player
+                      , enemy_taunted = (False, 0)
+                      , player_stealthed = (False, 0) 
+                      }
+            , command
             )
         Types.FinishLevel ->
             let
@@ -398,7 +437,7 @@ update msg model =
         Types.BetweenRoomRush room ->
             let
                 new_log = "PLAYER has chosen to rush into the next room" :: model.event_log
-                new_new_log = "Player gains two free actions in the next room" :: new_log
+                new_new_log = "Player gains one free action in the next room" :: new_log
                 room_enemies = room.enemies
                 new_player = 
                     case model.player of
@@ -410,6 +449,62 @@ update msg model =
             ( { model | player = Just updated_player, random_seed = new_seed, event_log = new_new_log }
             , Types.performMessage <| Types.EnterRoom
             )
+        Types.PurchaseWater ->
+            let
+                new_log = "PLAYER has purchased water (recover 5 hp)" :: model.event_log
+                new_player = 
+                    case model.player of
+                        Just p -> p
+                        Nothing -> Player.defaultPlayer |> Player.calculateHP --SHOULD NEVER HAPPEN
+                updated_player = new_player |> Player.adjustHealth 5 |> Player.adjustCoins -2
+            in
+            ( { model | player = Just updated_player, event_log = new_log }
+            , Cmd.none
+            )
+        Types.PurchaseJuice ->
+            let
+                new_log = "PLAYER has purchased juice (recover 10 sanity)" :: model.event_log
+                new_player = 
+                    case model.player of
+                        Just p -> p
+                        Nothing -> Player.defaultPlayer |> Player.calculateHP --SHOULD NEVER HAPPEN
+                updated_player = new_player |> Player.adjustSanity 10 |> Player.adjustCoins -5
+            in
+            ( { model | player = Just updated_player, event_log = new_log }
+            , Cmd.none
+            )
+        Types.PurchaseHotChocolate ->
+            let
+                new_log = "PLAYER has purchased hot chocolate (fully recover hp and sanity)" :: model.event_log
+                new_player = 
+                    case model.player of
+                        Just p -> p
+                        Nothing -> Player.defaultPlayer |> Player.calculateHP --SHOULD NEVER HAPPEN
+                updated_player = new_player |> Player.adjustHealth 1000 |> Player.adjustSanity 1000 |> Player.adjustCoins -10
+            in
+            ( { model | player = Just updated_player, event_log = new_log }
+            , Cmd.none
+            )
+        Types.PurchaseProteinShake ->
+            let
+                new_log = "PLAYER has purchased Protein Shake (Gain 10 max hp)" :: model.event_log
+                new_player = 
+                    case model.player of
+                        Just p -> p
+                        Nothing -> Player.defaultPlayer |> Player.calculateHP --SHOULD NEVER HAPPEN
+                updated_player = new_player |> Player.adjustMaxHealth 10 |> Player.adjustHealth 10 |> Player.adjustCoins -20
+            in
+            ( { model | player = Just updated_player, event_log = new_log }
+            , Cmd.none
+            )
+        Types.BetweenLevelPurchaseFinished ->
+            let
+                new_log = "PLAYER has finished purchasing from the vending machine" :: model.event_log
+                new_new_log = "------->PLAYER goes up to the next level------->" :: new_log
+            in
+            ( { model | event_log = new_new_log }
+            , Types.performMessage <| Types.EnterRoom
+            )
 
         -- PLAYER ACTIONS
         Types.PlayerAttack distance mod->
@@ -417,11 +512,11 @@ update msg model =
             -- TODO how to chose which enemy to attack?
             let
                 the_current_level = model.current_level
-                attack_type = 
+                (attack_type, new_weapon) = 
                     if distance == Action.Melee then
-                        Weapon.Melee
+                        (Weapon.Melee, model.current_weapon)
                     else
-                        Weapon.Ranged
+                        (Weapon.Ranged, Weapon.None)
                 player = 
                     case model.player of
                         Just p -> p
@@ -442,6 +537,11 @@ update msg model =
                                         Just e -> [e]
                             in
                             new_enemy ++ t
+                (new_player, new_new_log) =
+                    if (List.length new_enemies) < (List.length room.enemies) then
+                        (Player.adjustSanity -3 player, "PLAYER has killed an enemy and lost 3 sanity" :: new_log)
+                    else
+                        (player, new_log)
                 new_room = 
                     { room | enemies = new_enemies }
                 all_rooms = 
@@ -449,7 +549,7 @@ update msg model =
                 new_current_level = 
                     { the_current_level | rooms = all_rooms }
             in 
-            ( { model | current_level = new_current_level, show_player_action_options = False, event_log = new_log }
+            ( { model | current_level = new_current_level, show_player_action_options = False, event_log = new_new_log, current_weapon = new_weapon, player = Just new_player }
             , Types.performMessage <| Types.NextTurn
             )
 
@@ -473,9 +573,17 @@ update msg model =
         Types.PlayerTaunt ->
             let
                 new_log = "PLAYER taunts the enemy" :: model.event_log
+                player =
+                    case model.player of
+                        Just p -> p
+                        Nothing -> Player.defaultPlayer |> Player.calculateHP --SHOULD NEVER HAPPEN
+                dur = 
+                    if player.class == Player.Spy then
+                        4
+                    else
+                        3
             in
-            -- TODO Taunt here
-            ( { model | show_player_action_options = False, event_log = new_log, enemy_taunted = (True, 4) }
+            ( { model | show_player_action_options = False, event_log = new_log, enemy_taunted = (True, dur), player_taunt_cooldown = 5 }
             , Types.performMessage <| Types.NextTurn
             )
         Types.PlayerFuriousAttack ->
@@ -483,15 +591,23 @@ update msg model =
                 new_log = "PLAYER performs a furious attack" :: model.event_log
             in
             -- TODO implement cooldown and negative effect
-            ( { model | show_player_action_options = False, event_log = new_log, furious_attack_cooldown = 4 }
+            ( { model | show_player_action_options = False, event_log = new_log, furious_attack_cooldown = 5 }
             , Types.performMessage <| Types.PlayerAttack model.distance_from_enemy 2
             )
         Types.PlayerStealth ->
             let
                 new_log = "PLAYER enters STEALTH" :: model.event_log
+                player =
+                    case model.player of
+                        Just p -> p
+                        Nothing -> Player.defaultPlayer |> Player.calculateHP --SHOULD NEVER HAPPEN
+                dur = 
+                    if player.class == Player.Rogue then
+                        4
+                    else
+                        3
             in
-            -- TODO Stealth here
-            ( { model | show_player_action_options = False, event_log = new_log, player_stealthed = (True, 4) }
+            ( { model | show_player_action_options = False, event_log = new_log, player_stealthed = (True, dur), player_stealth_cooldown = 5 }
             , Types.performMessage <| Types.NextTurn
             )
         Types.PlayerHeal ->
@@ -507,9 +623,11 @@ update msg model =
                         player |> Player.adjustHealth (heal_amount + 5)
                     else
                         player |> Player.adjustHealth heal_amount
+                heal_report = new_player.hp - player.hp
+                new_new_log = ("PLAYER heals for " ++ (String.fromInt heal_report) ++ " health") :: new_log
             in
             -- TODO cooldowns
-            ( { model | show_player_action_options = False, event_log = new_log, self_heal_cooldown = 4 }
+            ( { model | show_player_action_options = False, event_log = new_new_log, self_heal_cooldown = 5, player = Just new_player }
             , Types.performMessage <| Types.NextTurn
             )
         
@@ -589,7 +707,7 @@ update msg model =
 
                             Action.EnemyTaunt ->
                                 let
-                                    sanity_dmg = Weapon.getTauntDamage enemy
+                                    sanity_dmg = (Weapon.getTauntDamage enemy) + 2
                                     p = Player.adjustSanity (sanity_dmg * -1) player
                                 in
                                     (p, model.distance_from_enemy, ("ENEMY " ++ (String.fromInt enemy.id) ++ " taunts the player for " ++ (String.fromInt sanity_dmg) ++ " sanity damage") :: model.event_log)
@@ -621,6 +739,12 @@ update msg model =
                       , player_status = Player.NotStarted
                       , current_level = Level.level1
                       , current_room = 0
+                      , player_stealthed = (False, 0)
+                      , player_stealth_cooldown = 0
+                      , enemy_taunted = (False, 0)
+                      , player_taunt_cooldown = 0
+                      , furious_attack_cooldown = 0
+                      , self_heal_cooldown = 0
                       , event_log = ["RESET GAME"]
              }
             , Cmd.none
@@ -634,6 +758,17 @@ update msg model =
                 millis = Time.posixToMillis time
             in
             ( { model | random_seed = Random.initialSeed millis }
+            , Cmd.none
+            )
+        Types.TestChangeDistance ->
+            let
+                new_distance = 
+                    if model.distance_from_enemy == Action.Melee then
+                        Action.Range
+                    else
+                        Action.Melee
+            in
+            ( { model | distance_from_enemy = new_distance }
             , Cmd.none
             )
         _ ->

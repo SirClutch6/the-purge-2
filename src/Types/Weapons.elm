@@ -25,9 +25,20 @@ type AttackType
 getTauntDamage : Enemy.Enemy -> Int
 getTauntDamage enemy =
     enemy.charisma
-    
+
 getWeaponDamage : Character -> Weapon -> AttackType -> Int
 getWeaponDamage character weapon range =
+    let
+        damage =
+            calcWeaponDamage character weapon range
+    in
+    if damage < 0 then
+        0
+    else
+        damage
+        
+calcWeaponDamage : Character -> Weapon -> AttackType -> Int
+calcWeaponDamage character weapon range =
     let
         dex = case character of
             Player player ->
@@ -82,7 +93,7 @@ getWeaponDamage character weapon range =
                     dex + 2
 
                 Ranged ->
-                    dex + 0
+                    str + 0
 
         Spear ->
             case range of

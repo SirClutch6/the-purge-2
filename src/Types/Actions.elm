@@ -36,6 +36,15 @@ type AfterRoom
     | Loot
     | Rush
 
+distanceToString : Distance -> String
+distanceToString distance =
+    case distance of
+        Melee ->
+            "Melee"
+
+        Range ->
+            "Range"
+
 directionToString : Direction -> String
 directionToString direction =
     case direction of
@@ -282,7 +291,7 @@ afterRoomEffect effect enemy_list seed player =
             -- TODO take new weapon
 
         Rush ->
-            (P.adjustRush 2 player, seed)
+            (P.adjustRush 1 player, seed)
 
 -- getRandomCoins : E.Enemy -> (List Int, Random.Seed) -> (List Int, Random.Seed)
 -- getRandomCoins _ (coins, seed) =
