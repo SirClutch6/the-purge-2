@@ -22,6 +22,8 @@ helpInfo =
     , "Rush -> Gives the character a free turn"
     , "Coins -> Money used to buy items at the end of each level"
     , "Turn Initiative -> Affects who acts first"
+    , "Distance -> The distance between the PLAYER and the ENEMIES"
+    , "- If there are multiple ENEMIES in a room, they will always stay together"
     , "---------------------"
     , "Actions: *Note: A PLAYER will lose their weapon until the end of the room if they perform a ranged attack"
     , "Ranged Attack -> Attacks an enemy from a distance"

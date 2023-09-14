@@ -54,6 +54,7 @@ type FrontendMsg
     | PurchaseProteinShake
     | BetweenLevelPurchaseFinished
     -- Player Actions
+    | SelectEnemy Int
     | PlayerAttack Action.Distance Int
     | PlayerMove Action.Direction
     | PlayerTaunt

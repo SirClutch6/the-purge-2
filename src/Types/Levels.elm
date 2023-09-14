@@ -35,7 +35,7 @@ level1 =
         [ { num = 1
           , items = [ Stapler ]
           , enemies = [ Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 1 1
-                      -- , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 1 2
+                      , Enemy.calculateEnemyHP <| Enemy.baseEnemySpy 1 2
                       ] -- TODO make these random from a pool
           }
         , { num = 2

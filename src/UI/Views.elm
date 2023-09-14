@@ -3,7 +3,6 @@ module UI.Views exposing (..)
 import Frontend.Model as FM
 import Types
 import UI.Components.Buttons as Btn
-import UI.Components.DropdownSelection as DDS
 
 import Tailwind.Theme as TW
 import Tailwind.Utilities as TW
@@ -17,6 +16,8 @@ import Types.Levels as Level
 import Types.Actions as Actions
 import Types.Enemy as Enemy
 import Types.Weapons as Weapon
+
+import Css
 
 viewGameNotStarted : FM.Model -> List (HS.Html Types.FrontendMsg)
 viewGameNotStarted model =
@@ -158,7 +159,18 @@ viewInGame model =
             viewStartedEntry (Maybe.withDefault Player.defaultPlayer model.player)
         Player.InRoom ->
             -- Show room scene
-            viewInRoom (Maybe.withDefault Player.defaultPlayer model.player) current_room model.distance_from_enemy model.room_entry_type model.show_player_action_options hide_taunt hide_furious_attack hide_stealth hide_self_heal model.current_weapon
+            viewInRoom 
+                (Maybe.withDefault Player.defaultPlayer model.player) 
+                current_room 
+                model.distance_from_enemy 
+                model.room_entry_type 
+                model.show_player_action_options 
+                hide_taunt 
+                hide_furious_attack 
+                hide_stealth 
+                hide_self_heal 
+                model.current_weapon
+                model.selected_enemy_id
         Player.BetweenRooms ->
             -- Show between room scene
             viewBetweenRooms (Maybe.withDefault Player.defaultPlayer model.player) current_room
@@ -209,8 +221,8 @@ viewStartedEntry _ =
             ]
     ]
 
-viewInRoom : Player.Player -> Level.Room -> Actions.Distance -> Level.RoomEntryType -> Bool -> Bool -> Bool -> Bool -> Bool -> Weapon.Weapon -> List (HS.Html Types.FrontendMsg)
-viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hide_stealth hide_self_heal weapon =
+viewInRoom : Player.Player -> Level.Room -> Actions.Distance -> Level.RoomEntryType -> Bool -> Bool -> Bool -> Bool -> Bool -> Weapon.Weapon -> Int -> List (HS.Html Types.FrontendMsg)
+viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hide_stealth hide_self_heal weapon selected_enemy_id =
     let
         occ = 
             if List.length room.enemies > 1 then
@@ -330,7 +342,7 @@ viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hid
             |> Btn.toHtml
         -- , Btn.button Types.TestChangeDistance (Just "Change Distance")
         --     |> Btn.toHtml
-        ] ++ viewEnemyHelper room)
+        ] ++ viewEnemyHelper room selected_enemy_id)
     ]
     
 
@@ -683,7 +695,7 @@ viewPlayerHelper model =
                         , TW.space_x_2
                         ]
                     ]
-                    [ HS.text <| "Current Distance: "
+                    [ HS.text <| "Distance: "
                     , HS.text <| Actions.distanceToString model.distance_from_enemy
                     ]
                 ]
@@ -784,8 +796,8 @@ viewPlayerStatsHelper player stat =
         , display
         ]
 
-viewEnemyHelper : Level.Room -> List (HS.Html Types.FrontendMsg)
-viewEnemyHelper room =
+viewEnemyHelper : Level.Room -> Int -> List (HS.Html Types.FrontendMsg)
+viewEnemyHelper room selected_id =
     let
         enemies = room.enemies
         enemy_ids = 
@@ -803,37 +815,44 @@ viewEnemyHelper room =
             , TW.space_x_5
             ]
         ]
-        ( List.map (\enemy -> viewEachEnemyHelper enemy) enemies )
-    , HS.div
-        [ HSA.css
-            [ 
-            ]
-        ]
-        [ DDS.dropdownSelection enemy_ids
-        ]
+        ( List.map (\enemy -> viewEachEnemyHelper enemy selected_id) enemies )
     ]
-    
 
 
-viewEachEnemyHelper : Enemy.Enemy -> HS.Html Types.FrontendMsg
-viewEachEnemyHelper enemy =
+viewEachEnemyHelper : Enemy.Enemy -> Int -> HS.Html Types.FrontendMsg
+viewEachEnemyHelper enemy selected_enemy=
     let
         stats = 
             [ viewEnemyStatsHelper enemy "HP"
             , viewEnemyStatsHelper enemy "Rush"
             , viewEnemyStatsHelper enemy "Turn Initiative"
             ]
+        attr =
+            if enemy.id == selected_enemy then
+                [ HSA.css
+                    [ TW.flex
+                    , TW.flex_col
+                    , TW.border_2
+                    , TW.border_color TW.black
+                    , TW.border_solid
+                    , TW.p_2
+                    ]
+                ]
+            else
+                [ HSA.css
+                    [ TW.flex
+                    , TW.flex_col
+                    , TW.border_2
+                    , TW.border_color TW.gray_300
+                    , TW.border_solid
+                    , TW.p_2
+                    , Css.hover [(Css.cursor Css.pointer)]
+                    ]
+                , HSE.onClick (Types.SelectEnemy enemy.id)
+                ]
     in
     HS.div
-        [ HSA.css
-            [ TW.flex
-            , TW.flex_col
-            , TW.border_2
-            , TW.border_color TW.black
-            , TW.border_solid
-            , TW.p_2
-            ]
-        ]
+        attr
         [ HS.div
             [ HSA.css
                 [ TW.underline

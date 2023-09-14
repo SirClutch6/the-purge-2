@@ -523,6 +523,10 @@ update msg model =
             )
 
         -- PLAYER ACTIONS
+        Types.SelectEnemy id ->
+            ( { model | selected_enemy_id = id }
+            , Cmd.none
+            )
         Types.PlayerAttack distance mod->
             -- TODO lose weapon on ranged attack?
             -- TODO how to chose which enemy to attack?
