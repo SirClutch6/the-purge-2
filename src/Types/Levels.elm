@@ -92,7 +92,7 @@ level2 seed =
   let
     (list_enemies, new_seed) = Random.step (RNG.randomListGen (6) RNG.zeroToThree) seed
     enemy_array = Array.fromList list_enemies
-    enemy1 = enemyHelper (Array.get 0 enemy_array |> Maybe.withDefault 5) 2 1
+    enemy1 = enemyHelper (Array.get 0 enemy_array |> Maybe.withDefault 5) 2 2
     enemy2 = enemyHelper (Array.get 1 enemy_array |> Maybe.withDefault 5) 2 1
     enemy3 = enemyHelper (Array.get 2 enemy_array |> Maybe.withDefault 5) 2 2
     enemy4 = enemyHelper (Array.get 3 enemy_array |> Maybe.withDefault 5) 2 2
