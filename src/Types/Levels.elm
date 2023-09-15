@@ -20,6 +20,7 @@ type RoomEntryType
     | FailedSneak
     | Rush
     | Normal
+    -- | Other
 
 type alias Room =
     { num : Int

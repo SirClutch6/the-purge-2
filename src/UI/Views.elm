@@ -307,9 +307,9 @@ viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hid
     let
         occ = 
             if List.length room.enemies > 1 then
-                "Occupants"
+                "occupants"
             else
-                "Occupant"
+                "occupant"
         text = 
             case msg of
                 Level.DexSneak ->
@@ -322,6 +322,8 @@ viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hid
                     "You quickly enter the room, catching its " ++ occ ++ " off guard."
                 Level.Normal ->
                     "You proceed into the room."
+                -- Level.Other ->
+                --     ""
         (attack_btn, move_btn, furious_attack_button) = 
             if (distance == Actions.Range && weapon == Weapon.None) then
                 ( Btn.button (Types.PlayerAttack Actions.Range 1) (Just "Ranged Attack*")
@@ -419,8 +421,8 @@ viewInRoom player room distance msg show_btns hide_taunt hide_furious_attack hid
                 ]
             ]
             action_buttons
-        , Btn.button Types.JumpToFinish (Just "Skip to Finish")
-            |> Btn.toHtml
+        -- , Btn.button Types.JumpToFinish (Just "Skip to Finish")
+        --     |> Btn.toHtml
         -- , Btn.button Types.TestChangeDistance (Just "Change Distance")
         --     |> Btn.toHtml
         ] ++ viewEnemyHelper room selected_enemy_id)
@@ -442,8 +444,8 @@ viewBetweenRooms player room =
         ]
         [ HS.text "You have completed the room."
         , HS.text "What will you do between rooms?"
-        , HS.text ("HP: " ++ (String.fromInt player.hp) ++ "/" ++ (String.fromInt player.max_hp) ++ "\n")
-        , HS.text ("Sanity%: " ++ (String.fromInt player.sanity) ++ "\n")
+        -- , HS.text ("HP: " ++ (String.fromInt player.hp) ++ "/" ++ (String.fromInt player.max_hp) ++ "\n")
+        -- , HS.text ("Sanity%: " ++ (String.fromInt player.sanity) ++ "\n")
         ]
         , HS.div
             [ HSA.css

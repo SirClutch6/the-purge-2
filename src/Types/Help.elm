@@ -80,5 +80,5 @@ creditInfo =
     [ "Elm Jam #6"
     , "Designed and Engineered by: Matthew Bentley"
     , "Copyright 2023 Crazy Cockatoo Games™"
-    , "Please send any feedback to the_purge@crazycockatoogames.com"
+    , "Please send any feedback to the_purge@crazy-cockatoo.com"
     ]

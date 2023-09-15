@@ -437,6 +437,7 @@ update msg model =
                       , player_stealthed = new_player_stealthed
                       , furious_attack_cooldown = new_furious_attack_cooldown
                       , self_heal_cooldown = new_self_heal_cooldown
+                      , room_entry_type = Level.Normal
               }
             , Types.performMessage <| Types.EnterRoom
             )
@@ -453,7 +454,7 @@ update msg model =
                 gained_coins = updated_player.coins - new_player.coins
                 new_new_log = ("PLAYER has gained " ++ (String.fromInt gained_coins) ++ " coins") :: new_log
             in
-            ( { model | player = Just updated_player, random_seed = new_seed, event_log = new_new_log }
+            ( { model | player = Just updated_player, random_seed = new_seed, event_log = new_new_log, room_entry_type = Level.Normal }
             , Types.performMessage <| Types.EnterRoom
             )
         Types.BetweenRoomRush room ->
@@ -468,7 +469,7 @@ update msg model =
 
                 (updated_player, new_seed) = Action.afterRoomEffect Action.Rush room_enemies model.random_seed new_player
             in
-            ( { model | player = Just updated_player, random_seed = new_seed, event_log = new_new_log }
+            ( { model | player = Just updated_player, random_seed = new_seed, event_log = new_new_log, room_entry_type = Level.Rush }
             , Types.performMessage <| Types.EnterRoom
             )
         Types.PurchaseWater ->
@@ -524,7 +525,7 @@ update msg model =
                 new_log = "PLAYER has finished purchasing from the vending machine" :: model.event_log
                 new_new_log = "------->PLAYER goes up to the next level------->" :: new_log
             in
-            ( { model | event_log = new_new_log }
+            ( { model | event_log = new_new_log, room_entry_type = Level.Normal }
             , Types.performMessage <| Types.EnterRoom
             )
 
