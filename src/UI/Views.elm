@@ -30,6 +30,8 @@ viewGameNotStarted model =
                 [ HSA.css
                     [ TW.absolute 
                     , TW.top_1over4
+                    , TW.flex
+                    , TW.flex_col
                     ]
                 ]
                 [ HS.div
@@ -54,15 +56,15 @@ viewGameNotStarted model =
                         ]
                     ]
                     cInfo
-                , HS.a
-                        [ HSA.css
-                            [ 
-                            ]
-                        , HSA.href "https://crazy-cockatoo.com/"
-                        , HSA.target "_blank"
-                        ]
-                        [ HS.text <| "Crazy Cockatoo Games"
-                        ]
+                -- , HS.a
+                --         [ HSA.css
+                --             [ 
+                --             ]
+                --         , HSA.href "https://crazy-cockatoo.com/"
+                --         , HSA.target "_blank"
+                --         ]
+                --         [ HS.text <| "Crazy Cockatoo Games"
+                --         ]
                 , HS.div
                     []
                     [ HS.text <| "-------------------------------"
@@ -76,7 +78,24 @@ viewGameNotStarted model =
                     ]
                     [ HS.text <| "Source Code"
                     ]
-                
+                , HS.a
+                    [ HSA.href "https://crazy-cockatoo.com/"
+                    , HSA.target "_blank"
+                    -- , HSA.css
+                    --     [ TW.h_24
+                    --     , TW.w_24
+                    --     ]
+                    ]
+                    [ HS.img
+                        [ HSA.src "/assets/Crazy-cockatoo-games.png"
+                        , HSA.css
+                            [ TW.w_16
+                            , TW.object_contain
+                            , TW.object_center
+                            ]
+                        ]
+                        []
+                    ]
                 ]
     in
     [ HS.div
