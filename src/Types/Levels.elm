@@ -94,7 +94,7 @@ level2 seed =
     enemy1 = enemyHelper (Array.get 0 enemy_array |> Maybe.withDefault 5) 2 1
     enemy2 = enemyHelper (Array.get 1 enemy_array |> Maybe.withDefault 5) 2 1
     enemy3 = enemyHelper (Array.get 2 enemy_array |> Maybe.withDefault 5) 2 2
-    enemy4 = enemyHelper (Array.get 3 enemy_array |> Maybe.withDefault 5) 2 1
+    enemy4 = enemyHelper (Array.get 3 enemy_array |> Maybe.withDefault 5) 2 2
     enemy5 = enemyHelper (Array.get 4 enemy_array |> Maybe.withDefault 5) 2 1
     enemy6 = enemyHelper (Array.get 5 enemy_array |> Maybe.withDefault 5) 2 2
   in

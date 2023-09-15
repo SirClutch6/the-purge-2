@@ -143,11 +143,17 @@ viewPointBuy : FM.Model -> List (HS.Html Types.FrontendMsg)
 viewPointBuy model =
     let
         temp = (Maybe.withDefault Player.defaultPlayer model.temp_player)
-        finish_msg = 
+        btns = 
             if model.player_status == Player.BetweenLevels then
-                Types.ConfirmPointsBuyBetweenLevel
+                [ Btn.button Types.ConfirmPointsBuyBetweenLevel (Just "Continue") --Proceed/continue to game
+                    |> Btn.toHtml
+                ]
             else
-                Types.ConfirmPointsBuyInitial
+                [Btn.button Types.ReturnToClassChoice (Just "Back")
+                    |> Btn.toHtml
+                , Btn.button Types.ConfirmPointsBuyInitial (Just "Continue") --Proceed/continue to game
+                    |> Btn.toHtml 
+                ]
     in
     case model.player of
             Just player ->
@@ -187,11 +193,8 @@ viewPointBuy model =
                             , TW.space_x_2
                             ]
                         ]
-                        [ Btn.button Types.ReturnToClassChoice (Just "Back")
-                            |> Btn.toHtml
-                        , Btn.button finish_msg (Just "Continue") --Proceed/continue to game
-                            |> Btn.toHtml
-                        ]
+                        btns
+                        
                     ]
                 ]
             Nothing ->
