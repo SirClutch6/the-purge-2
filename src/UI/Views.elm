@@ -56,15 +56,18 @@ viewGameNotStarted model =
                         ]
                     ]
                     cInfo
-                -- , HS.a
-                --         [ HSA.css
-                --             [ 
-                --             ]
-                --         , HSA.href "https://crazy-cockatoo.com/"
-                --         , HSA.target "_blank"
-                --         ]
-                --         [ HS.text <| "Crazy Cockatoo Games"
-                --         ]
+                , HS.div
+                    [ 
+                    ]
+                    [ HS.text <| "Icon created by Yosua Bungaran from "
+                    , HS.a
+                        [ HSA.href "https://thenounproject.com/yosuabungaran/"
+                        , HSA.target "_blank"
+                        ]
+                        [ HS.text <| "The Noun Project"
+                        ]
+                    , HS.text <| " under the Creative Commons license."
+                    ]
                 , HS.div
                     []
                     [ HS.text <| "-------------------------------"
@@ -109,10 +112,28 @@ viewGameNotStarted model =
                 [ HSA.css
                     [ TW.absolute
                     , TW.top_7
+                    , TW.font_extrabold
+                    , TW.text_lg
                     ]
                 ]
                 [ HS.text "THE PURGE"
                 ]
+        , HS.div
+            [ HSA.css
+                [ TW.absolute
+                , TW.top_12
+                ]
+            ]
+            [ HS.img
+                [ HSA.src "/assets/noun-spear.png"
+                , HSA.css
+                    [ TW.w_32
+                    , TW.object_contain
+                    , TW.object_center
+                    ]
+                ]
+                []
+            ]
         , gameInfo
         , HS.div
             [ HSA.css
